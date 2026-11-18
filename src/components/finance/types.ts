@@ -33,9 +33,31 @@ export interface Assumption {
   values: number[];
 }
 
+export interface RevenueBasis {
+  reps: number;
+  outletsPerRep: number;
+  outlets: number;
+  salesPerOutletMonth: number;
+  monthlyRevenue: number;
+  annualRevenue: number;
+  revenuePerRepMonth: number;
+  freezerOutletShare: number;
+}
+
+export interface Breakeven {
+  requiredNetAnnualEffect12m: number;
+  minUpliftPct12m: number;
+  minUpliftPctNoOtherEffects: number;
+  netAnnualEffectNoFreezers: number;
+  paybackMonthsNoFreezers: number | null;
+  paybackMonthFromStartNoFreezers: number | null;
+}
+
 export interface FinanceSummary {
   currency: string;
   budget: BudgetData;
   scenarios: Scenario[];
   assumptions: Assumption[];
+  revenueBasis?: RevenueBasis;
+  breakeven?: Breakeven;
 }

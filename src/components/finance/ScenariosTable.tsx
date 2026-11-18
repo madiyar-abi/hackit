@@ -10,7 +10,7 @@ const SCENARIO_STYLE: Record<string, { header: string; badge: string }> = {
 const ROWS: { label: string; key: keyof Scenario; fmt: (n: number) => string }[] = [
   { label: "Прирост выручки", key: "revenueUplift", fmt: fmtTenge },
   { label: "Доп. валовая прибыль", key: "grossProfitEffect", fmt: fmtTenge },
-  { label: "Снижение потерь", key: "lossReduction", fmt: fmtTenge },
+  { label: "Снижение списаний (по себестоимости)", key: "lossReduction", fmt: fmtTenge },
   { label: "Годовой OPEX поддержки", key: "annualOpex", fmt: fmtTenge },
   { label: "Чистый годовой эффект", key: "netAnnualEffect", fmt: fmtTenge },
   { label: "ROI 1-го года", key: "roiYear1", fmt: fmtRoi },

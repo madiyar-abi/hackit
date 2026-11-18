@@ -4,6 +4,7 @@ import { PageHeader, Panel } from "@/components/ui";
 import { BudgetTable } from "@/components/finance/BudgetTable";
 import { ScenariosTable } from "@/components/finance/ScenariosTable";
 import { AssumptionsList } from "@/components/finance/AssumptionsList";
+import { BreakevenList, RevenueBasisList } from "@/components/finance/RevenueBreakeven";
 import { fmtTenge, fmtRoi, fmtPayback } from "@/components/finance/format";
 import type { FinanceSummary } from "@/components/finance/types";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function FinancePage() {
-  const { budget, scenarios, assumptions } = summary;
+  const { budget, scenarios, assumptions, revenueBasis, breakeven } = summary;
   const baseScenario = scenarios.find((s) => s.key === "base") || scenarios[1] || scenarios[0];
   const withinBudget = budget.total <= budget.limit;
   const budgetMargin = budget.limit - budget.total;
@@ -87,10 +88,33 @@ export default function FinancePage() {
         </div>
       </Panel>
 
+      {(revenueBasis || breakeven) && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {revenueBasis && (
+            <Panel title="Откуда 6 млрд ₸: выручка снизу вверх" action={<span className="text-xs text-muted">лист «Обоснование выручки»</span>}>
+              <RevenueBasisList r={revenueBasis} />
+              <p className="border-t border-line px-5 py-3 text-xs text-muted">
+                Все значения — допущения команды для среднего молочного завода РК, а не данные заказчика.
+                На пилоте заменяются фактом из 1С — модель пересчитывается автоматически.
+              </p>
+            </Panel>
+          )}
+          {breakeven && (
+            <Panel title="Безубыточность (базовый сценарий)" action={<span className="text-xs text-muted">лист «Безубыточность»</span>}>
+              <BreakevenList b={breakeven} />
+              <p className="border-t border-line px-5 py-3 text-xs text-muted">
+                Вложения идут в месяцы 1–6, эффект — с 7-го месяца. Окупиться за 12 месяцев от старта значит
+                вернуть бюджет за 6 месяцев работы системы.
+              </p>
+            </Panel>
+          )}
+        </div>
+      )}
+
       {/* Assumptions Panel */}
       <Panel
         title="Ключевые исходные допущения финансовой модели"
-        action={<span className="text-xs text-muted">Источник: данные компании и отраслевые бенчмарки</span>}
+        action={<span className="text-xs text-muted">Допущения команды для среднего молочного завода РК</span>}
       >
         <div className="p-1">
           <AssumptionsList assumptions={assumptions} />
