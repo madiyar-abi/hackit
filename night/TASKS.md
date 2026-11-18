@@ -11,10 +11,10 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 - [x] T3 (lead) Deviation engine: 5 detectors (missed visits, sales drop ≥30%, outlet without freezer, freezer without sales, plan ≤50%), thresholds in config — files: src/lib/engine/config.ts, src/lib/engine/detect.ts, src/lib/engine/*.test.ts — accept: `npm test` green, one test per type
 - [x] T4 (lead) Possible causes + recommended actions (rules correlating related data, with evidence) — files: src/lib/engine/causes.ts (+test) — accept: every alert in demo data has ≥1 cause with evidence and an action
 - [x] T5 (lead) Notifications: severity, feed, simulated Telegram/e-mail message text — files: src/lib/engine/notify.ts (+test) — accept: test checks message text for each type
-- [ ] T6 (lead) Manager dashboard `/` (KPIs, alerts by severity, 5 case situations visible) — files: src/app/page.tsx, src/components/* — accept: build passes, page shows alerts of all 5 types
-- [ ] T7 (lead) Alerts list `/alerts` with filters (type, severity, rep) — files: src/app/alerts/* — accept: build passes, filters work via query params
+- [x] T6 (lead) Manager dashboard `/` (KPIs, alerts by severity, 5 case situations visible) — files: src/app/page.tsx, src/components/* — accept: build passes, page shows alerts of all 5 types
+- [x] T7 (lead) Alerts list `/alerts` with filters (type, severity, rep) — files: src/app/alerts/* — accept: build passes, filters work via query params
 - [ ] T8 (lead) Rep card `/reps/[id]` and outlet card `/outlets/[id]` — files: src/app/reps/*, src/app/outlets/* — accept: build passes, pages statically generated
-- [ ] T9 (lead) Notifications feed `/notifications` with simulated send (Telegram / e-mail preview) — files: src/app/notifications/* — accept: build passes
+- [x] T9 (lead) Notifications feed `/notifications` with simulated send (Telegram / e-mail preview) — files: src/app/notifications/* — accept: build passes
 - [ ] T13 (lead) Deploy to Vercel; link in README.md and HANDOFF.md — accept: link opens dashboard
 
 ## Workers
