@@ -32,7 +32,7 @@ smoke test, jury materials polish.
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
   карточка ТП `/reps/[id]`, карточка точки `/outlets/[id]`, уведомления `/notifications`.
 - Engine (`src/lib/engine/`): 6 detectors (5 case situations + GPS), cause rules with evidence,
-  recommended actions, notification routing/texts, thresholds in `config.ts`. 31 vitest tests.
+  recommended actions, notification routing/texts, thresholds in `config.ts`. 34 vitest tests.
 - Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
   8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
 - Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
@@ -65,7 +65,7 @@ smoke test, jury materials polish.
 ```bash
 npm install
 npm run dev      # http://localhost:3000
-npm test         # 31 unit tests
+npm test         # 34 unit tests
 npm run build    # production build
 vercel deploy --prod   # redeploy (Vercel CLI logged in as the owner)
 ```
