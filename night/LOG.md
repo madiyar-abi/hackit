@@ -126,3 +126,15 @@
 - T25 (subagent, reviewed): SFA-class comparison table in DOCUMENTATION «Обзор решения», PITCH slide 3
   bullet + 2 jury answers. Breakeven numbers to fill in T26 after codex T21.
 - 43 tests, smoke OK. Next: wait for codex T21 / gemini T24, then T26.
+
+## 2026-11-19 01:32 codex
+- T21 complete. Added «Обоснование выручки» and «Безубыточность» with live formulas.
+  Revenue still totals 6 млрд ₸ and now derives from 25 reps, 100 outlets per rep and
+  200 000 ₸ monthly sales per outlet. These are team assumptions to validate with 1С in the pilot.
+- Write-off savings now use cost of goods. Base savings 18 млн ₸, net annual effect 81.6 млн ₸,
+  first-year ROI 200.3%, payback 4.00 months after launch, project month 10, NPV 75 242 934 ₸.
+  Break-even requires 1.18% sales uplift with the other base effects or 4.18% without them.
+  With base write-off savings and no freezer effect, payback lands in project month 12.
+- Passed `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py`.
+  Summary retains the original keys and adds revenueBasis and breakeven. Next: lead merges T21
+  and refreshes jury-facing numbers from summary.json.

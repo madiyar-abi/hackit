@@ -1,6 +1,7 @@
 """Создаёт финансовую модель Excel и сводку для веб-приложения."""
 import json
 from itertools import accumulate
+from math import ceil
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -15,6 +16,9 @@ DISCOUNT_RATE_PCT = 16
 CASHFLOW_MONTHS = 24
 UPLIFT_RATES = (1, 2, 3, 4, 5)
 REACTIVATION_RATES = (30, 50, 70)
+REPS = 25
+OUTLETS_PER_REP = 100
+SALES_PER_OUTLET_MONTH = 200_000
 SCENARIOS = (
     ("pessimistic", "Пессимистичный"),
     ("base", "Базовый"),
@@ -22,7 +26,8 @@ SCENARIOS = (
 )
 # Общие параметры хранятся в одной ячейке. Для сценарных задано три значения.
 ASSUMPTIONS = (
-    ("Выручка канала торговых представителей", "₸/год", (6_000_000_000,), "Текущая годовая база"),
+    ("Выручка канала торговых представителей", "₸/год",
+     (REPS * OUTLETS_PER_REP * SALES_PER_OUTLET_MONTH * 12,), "Снизу вверх по листу «Обоснование выручки»"),
     ("Валовая маржа", "%", (25,), "Применяется ко всему приросту выручки"),
     ("Прирост продаж от контроля визитов и плана", "%", (1.5, 3, 5), "От текущей выручки канала"),
     ("Морозильные лари компании", "шт.", (1_000,), "Установленный парк"),
@@ -30,7 +35,8 @@ ASSUMPTIONS = (
     ("Доля ларей без продаж, возвращённых в продажи", "%", (30, 50, 70), "Перестановка или возобновление поставок"),
     ("Продажи на один активный ларь", "₸/мес.", (120_000,), "Средняя выручка активного ларя"),
     ("Списания и возвраты", "%", (2,), "Исходная доля от выручки"),
-    ("Снижение списаний и возвратов", "п.п.", (0.2, 0.4, 0.6), "Абсолютное изменение доли"),
+    ("Снижение списаний и возвратов", "п.п.", (0.2, 0.4, 0.6),
+     "Списанная продукция оценивается по себестоимости = выручка × (1 − валовая маржа)"),
     ("Поддержка после внедрения", "₸/мес.", (700_000,), "Постоянные расходы после запуска"),
     ("Резерв на непредвиденные расходы", "%", (10,), "От прямых затрат внедрения"),
     ("Лимит бюджета", "₸", (30_000_000,), "Ограничение кейса"),
@@ -52,7 +58,7 @@ RESERVE_LABEL = "Резерв на непредвиденные расходы"
 METRICS = (
     ("revenueUplift", "Годовой прирост выручки", MONEY),
     ("grossProfitEffect", "Дополнительная валовая прибыль", MONEY),
-    ("lossReduction", "Снижение потерь за год", MONEY),
+    ("lossReduction", "Снижение потерь за год (по себестоимости)", MONEY),
     ("annualOpex", "Годовой OPEX поддержки", MONEY),
     ("netAnnualEffect", "Чистый годовой эффект", MONEY),
     ("roiYear1", "ROI 1-го года", PERCENT),
@@ -70,6 +76,75 @@ def make_sheet(book, name, headers, widths):
         cell.fill = PatternFill("solid", fgColor="173D50")
         cell.font = Font(bold=True, color="FFFFFF")
     return sheet
+
+
+def add_revenue_basis_sheet(book):
+    sheet = make_sheet(
+        book, "Обоснование выручки", ["Показатель", "Значение", "Единица", "Комментарий"],
+        [57, 24, 14, 65],
+    )
+    for label, value, unit, comment in (
+        ("Число торговых представителей", REPS, "чел.",
+         "Допущение команды для среднего молочного завода РК. Уточняется по данным заказчика."),
+        ("Торговых точек на одного ТП", OUTLETS_PER_REP, "точек",
+         "Допущение о маршруте из 20–25 точек в день. Один визит в неделю на точку при пятидневке."),
+        ("Активных торговых точек", "=B2*B3", "точек", None),
+        ("Средние продажи на точку в месяц, ₸", SALES_PER_OUTLET_MONTH, "₸/мес.",
+         "Допущение о средней закупке молочной продукции, от киоска до супермаркета."),
+        ("Выручка канала ТП в месяц", "=B4*B5", "₸/мес.", None),
+        ("Выручка канала ТП в год", "=B6*12", "₸/год", None),
+        ("Выручка на одного ТП в месяц (проверка)", "=B6/B2", "₸/мес.", None),
+        ("Доля точек с ларём компании (проверка)", "='Допущения'!B5/B4", "%", None),
+    ):
+        sheet.append([label, value, unit, comment])
+        row = sheet.max_row
+        if unit.startswith("₸"):
+            sheet[f"B{row}"].number_format = MONEY
+        if comment:
+            sheet[f"B{row}"].font = Font(color="175DAD")
+            sheet[f"D{row}"].alignment = Alignment(wrap_text=True, vertical="center")
+            sheet.row_dimensions[row].height = 32
+    sheet["B9"].number_format = PERCENT
+    sheet.merge_cells("A11:D11")
+    sheet["A11"] = (
+        "Все значения — допущения команды для среднего молочного завода РК. "
+        "На пилоте их заменят фактическими данными заказчика из 1С."
+    )
+    sheet["A11"].alignment = Alignment(wrap_text=True)
+    sheet.row_dimensions[11].height = 32
+
+
+def add_breakeven_sheet(book):
+    sheet = make_sheet(
+        book, "Безубыточность", ["Показатель (базовый сценарий)", "Значение", "Комментарий"],
+        [75, 24, 57],
+    )
+    for label, formula, number_format, comment in (
+        ("Инвестиции", "='Бюджет'!H13", MONEY, "Полный бюджет внедрения"),
+        ("Месяцев эффекта до конца 12-го месяца от старта", "=12-'Допущения'!B14", "0",
+         "Первые шесть месяцев занимает внедрение"),
+        ("Требуемый чистый годовой эффект для окупаемости за 12 мес.", "=B2/B3*12", MONEY,
+         "Экстраполяция необходимого месячного эффекта на год"),
+        ("Валовая прибыль от ларей (базовый)", "='Эффект'!C3*'Допущения'!B3/100", MONEY,
+         "Выручка от возвращённых в продажи ларей × маржа"),
+        ("Снижение потерь (базовый)", "='Эффект'!C6", MONEY, "Экономия по себестоимости"),
+        ("OPEX поддержки за год", "='Эффект'!C7", MONEY, "Расходы после запуска"),
+        ("Мин. прирост продаж для окупаемости за 12 мес., %",
+         "=(B4+B7-B5-B6)/('Допущения'!B2*'Допущения'!B3/100)*100", "0.00",
+         "Эффект ларей и снижение списаний по базовому сценарию"),
+        ("Мин. прирост продаж без эффекта ларей и списаний, %",
+         "=(B4+B7)/('Допущения'!B2*'Допущения'!B3/100)*100", "0.00",
+         "Окупаемость за счёт контроля визитов и плана"),
+        ("Чистый годовой эффект без ларей (базовый)",
+         "='Эффект'!C2*'Допущения'!B3/100+B6-B7", MONEY, "Экономия на списаниях сохраняется"),
+        ("Окупаемость без эффекта ларей, мес. после запуска",
+         '=IF(B10>0,B2/(B10/12),"Не окупается")', "0.00", "С начала получения эффекта"),
+        ("Месяц окупаемости от старта без ларей",
+         '=IF(B10>0,\'Допущения\'!B14+ROUNDUP(B11,0),"Не окупается")', "0",
+         "Порядковый месяц проекта с учётом внедрения"),
+    ):
+        sheet.append([label, formula, comment])
+        sheet[f"B{sheet.max_row}"].number_format = number_format
 
 
 def add_cashflow_sheet(book):
@@ -146,7 +221,7 @@ def write_workbook():
     names = [name for _, name in SCENARIOS]
     inputs = make_sheet(
         book, "Допущения", ["Показатель", "Общее значение", *names, "Единица", "Комментарий"],
-        [57, 19, 22, 19, 22, 12, 46],
+        [57, 19, 22, 19, 22, 12, 55],
     )
     for name, unit, values, comment in ASSUMPTIONS:
         columns = [values[0], None, None, None] if len(values) == 1 else [None, *values]
@@ -160,6 +235,11 @@ def write_workbook():
         "Эффективная годовая ставка для NPV",
     ])
     inputs["B15"].font = Font(color="175DAD")
+    inputs["B2"] = "='Обоснование выручки'!B7"
+    inputs["B2"].font = Font()
+    inputs["G10"].alignment = Alignment(wrap_text=True, vertical="center")
+    inputs.row_dimensions[10].height = 32
+    add_revenue_basis_sheet(book)
     budget = make_sheet(
         book, "Бюджет", ["Статья", *(f"Месяц {month}" for month in range(1, 7)), "Итого", "Тип"],
         [72, 16, 16, 16, 16, 16, 16, 18, 12],
@@ -187,7 +267,7 @@ def write_workbook():
     effect.append(["Выручка от возвращённых в продажи ларей"])
     effect.append(["Годовой прирост выручки"])
     effect.append(["Дополнительная валовая прибыль"])
-    effect.append(["Снижение потерь за год"])
+    effect.append(["Снижение потерь за год (по себестоимости)"])
     effect.append(["Годовой OPEX поддержки"])
     effect.append(["Чистый годовой эффект"])
     for col, input_col in zip("BCD", "CDE"):
@@ -198,7 +278,7 @@ def write_workbook():
             f"={common}5*{common}6/100*{scenario}7/100*{common}8*12",
             f"=SUM({col}2:{col}3)",
             f"={col}4*{common}3/100",
-            f"={common}2*{scenario}10/100",
+            f"={common}2*{scenario}10/100*(1-{common}3/100)",
             f"={common}11*12",
             f"=SUM({col}5:{col}6)-{col}7",
         )
@@ -242,6 +322,7 @@ def write_workbook():
                 cell.alignment = Alignment(vertical="center")
     add_cashflow_sheet(book)
     add_sensitivity_sheet(book)
+    add_breakeven_sheet(book)
     book.active = overview
     book.save(DIRECTORY / "financial-model.xlsx")
 
@@ -279,7 +360,7 @@ def write_summary():
         ) = [item["values"][index] for item in assumptions]
         uplift = revenue * sales_growth / 100 + freezers * idle_share / 100 * reactivated_share / 100 * freezer_sales * 12
         gross_profit = uplift * margin / 100
-        loss_reduction = revenue * reduction_pp / 100
+        loss_reduction = revenue * reduction_pp / 100 * (1 - margin / 100)
         opex = support * 12
         net = gross_profit + loss_reduction - opex
         scenarios.append({
@@ -293,8 +374,38 @@ def write_summary():
             "roiYear1": (net - investment) / investment,
             "paybackMonths": investment / (net / 12) if net > 0 else None,
         })
+    base = scenarios[1]
+    outlets = REPS * OUTLETS_PER_REP
+    monthly_revenue = outlets * SALES_PER_OUTLET_MONTH
+    revenue_basis = {
+        "reps": REPS,
+        "outletsPerRep": OUTLETS_PER_REP,
+        "outlets": outlets,
+        "salesPerOutletMonth": SALES_PER_OUTLET_MONTH,
+        "monthlyRevenue": monthly_revenue,
+        "annualRevenue": monthly_revenue * 12,
+        "revenuePerRepMonth": round(monthly_revenue / REPS),
+        "freezerOutletShare": assumptions[3]["values"][1] / outlets,
+    }
+
+    gross_profit_basis = revenue_basis["annualRevenue"] * assumptions[1]["values"][1] / 100
+    gross_profit_visits = gross_profit_basis * assumptions[2]["values"][1] / 100
+    gross_profit_freezers = base["grossProfitEffect"] - gross_profit_visits
+    required_effect = investment / (12 - months) * 12
+    required_gross_profit = required_effect + base["annualOpex"]
+    net_no_freezers = gross_profit_visits + base["lossReduction"] - base["annualOpex"]
+    payback_no_freezers = investment / (net_no_freezers / 12) if net_no_freezers > 0 else None
+    breakeven = {
+        "requiredNetAnnualEffect12m": round(required_effect),
+        "minUpliftPct12m": (required_gross_profit - gross_profit_freezers - base["lossReduction"]) / gross_profit_basis * 100,
+        "minUpliftPctNoOtherEffects": required_gross_profit / gross_profit_basis * 100,
+        "netAnnualEffectNoFreezers": round(net_no_freezers),
+        "paybackMonthsNoFreezers": payback_no_freezers,
+        "paybackMonthFromStartNoFreezers": months + ceil(payback_no_freezers) if payback_no_freezers is not None else None,
+    }
+
     months = list(range(1, CASHFLOW_MONTHS + 1))
-    monthly_benefit = scenarios[1]["netAnnualEffect"] / 12
+    monthly_benefit = base["netAnnualEffect"] / 12
     net = [-amount for amount in by_month] + [monthly_benefit] * (CASHFLOW_MONTHS - len(by_month))
     cumulative = list(accumulate(net))
     monthly_discount = (1 + DISCOUNT_RATE_PCT / 100) ** (1 / 12) - 1
@@ -308,7 +419,7 @@ def write_summary():
     }
     summary = {
         "currency": "₸", "budget": budget, "scenarios": scenarios, "assumptions": assumptions,
-        "cashflow": cashflow,
+        "cashflow": cashflow, "revenueBasis": revenue_basis, "breakeven": breakeven,
     }
     (DIRECTORY / "summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
