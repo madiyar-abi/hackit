@@ -7,6 +7,8 @@ import { SEVERITY_LABEL, TYPE_LABEL } from "@/lib/engine/notify";
 import { fmtMoney, fmtPct } from "@/lib/format";
 import { AlertCard } from "@/components/AlertCard";
 import { PageHeader, Panel, SEVERITY_STYLE } from "@/components/ui";
+import { AlertList, FoundSummary } from "@/components/Handled";
+import { slim } from "@/lib/handled";
 
 export const metadata: Metadata = { title: "Отклонения — Пульс продаж" };
 
@@ -132,10 +134,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm">
-          <span aria-live="polite">
-            Найдено: <span className="font-semibold">{shown.length}</span>
-            {shown.length > 0 && <span className="text-muted"> · под угрозой {fmtMoney(shown.reduce((s, a) => s + a.impact, 0))} в месяц</span>}
-          </span>
+          <FoundSummary alerts={shown.map(slim)} />
           {active && (
             <Link href="/alerts" className="text-frost underline-offset-2 hover:underline">
               Сбросить
@@ -145,9 +144,9 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
       </Panel>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <div className="space-y-4">
+        <div>
           {shown.length > 0 ? (
-            shown.map((a) => <AlertCard key={a.id} alert={a} data={dataset} />)
+            <AlertList className="space-y-4" items={shown.map((a) => ({ id: a.id, card: <AlertCard alert={a} data={dataset} /> }))} />
           ) : (
             <Panel>
               <div className="px-5 py-10 text-center text-sm text-muted">

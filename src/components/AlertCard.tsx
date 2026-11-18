@@ -3,6 +3,7 @@ import type { Alert, Dataset } from "@/lib/types";
 import { getOutlet, getRep } from "@/lib/selectors";
 import { fmtMoney } from "@/lib/format";
 import { SEVERITY_STYLE, SeverityBadge, TypeTag } from "./ui";
+import { HandleButton } from "./Handled";
 
 /** Full alert: what happened, possible causes with evidence, recommended actions. */
 export function AlertCard({ alert, data, compact = false }: { alert: Alert; data: Dataset; compact?: boolean }) {
@@ -34,7 +35,8 @@ export function AlertCard({ alert, data, compact = false }: { alert: Alert; data
         </div>
         <div className="text-right">
           <div className="whitespace-nowrap font-display text-xl font-semibold tracking-tight">{fmtMoney(alert.impact)}</div>
-          <div className="text-xs text-muted">под угрозой в месяц</div>
+          <div className="text-xs text-muted">{alert.type === "plan_underperformance" ? "недобор плана в месяц" : "под угрозой в месяц"}</div>
+          <HandleButton id={alert.id} />
         </div>
       </div>
 

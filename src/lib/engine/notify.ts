@@ -3,6 +3,7 @@
 import type { Alert, Channel, Dataset, Manager, NotificationMessage, Severity } from "../types";
 import { getOutlet, getRep, periodLabel } from "../selectors";
 import { fmtMoney } from "../format";
+import { riskSummary } from "./risk";
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
   critical: "Критично",
@@ -85,11 +86,11 @@ export function buildNotifications(alerts: Alert[], d: Dataset): NotificationMes
 /** Morning digest for the head of sales: counts and money at risk. */
 export function dailyDigest(alerts: Alert[], d: Dataset): string {
   const by = (s: Severity) => alerts.filter((a) => a.severity === s).length;
-  const risk = alerts.reduce((a, x) => a + x.impact, 0);
+  const risk = riskSummary(alerts);
   return [
     `📊 Пульс продаж — сводка за ${periodLabel(d.currentPeriod).toLowerCase()}`,
     `Отклонений: ${alerts.length} (🔴 ${by("critical")} · 🟠 ${by("high")} · 🟡 ${by("medium")})`,
-    `Продажи под угрозой: ${fmtMoney(risk)} в месяц`,
+    `Продажи под угрозой: ${fmtMoney(risk.lostSales)} в месяц, недобор плана: ${fmtMoney(risk.planGap)}`,
     ...alerts.slice(0, 5).map((a) => `${SEVERITY_ICON[a.severity]} ${a.title}`),
   ].join("\n");
 }

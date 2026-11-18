@@ -5,6 +5,8 @@ import { fmtMoney, fmtPct } from "@/lib/format";
 import type { DeviationType } from "@/lib/types";
 import { AlertCard } from "@/components/AlertCard";
 import { PageHeader, Panel, SEVERITY_STYLE } from "@/components/ui";
+import { AlertList, OpenCounts, OpenRisk } from "@/components/Handled";
+import { slim } from "@/lib/handled";
 
 const CASE_SITUATIONS: { type: DeviationType; text: string }[] = [
   { type: "missed_visits", text: "Торговый представитель не посетил 5 запланированных точек" },
@@ -30,8 +32,7 @@ export default function Dashboard() {
   const prev = totalSales(d, d.previousPeriod);
   const visits = d.visits.filter((v) => v.period === p);
   const done = visits.filter((v) => v.status === "done").length;
-  const atRisk = alerts.reduce((a, x) => a + x.impact, 0);
-  const count = (s: "critical" | "high" | "medium") => alerts.filter((a) => a.severity === s).length;
+  const slimAlerts = alerts.map(slim);
 
   const team = d.reps
     .map((r) => ({ r, ratio: repSales(d, r.id, p) / repPlan(d, r.id, p) }))
@@ -60,12 +61,10 @@ export default function Dashboard() {
             note={`${periodLabel(d.previousPeriod)}: ${fmtMoney(prev)}`}
           />
           <Kpi label="Визиты выполнены" value={fmtPct(done / visits.length)} note={`${done} из ${visits.length} плановых`} />
-          <Kpi
-            label="Продажи под угрозой"
-            value={fmtMoney(atRisk)}
-            note={`в месяц, по ${alerts.length} отклонениям`}
-            tone="critical"
-          />
+          <div>
+            <dt className="text-sm text-muted">Продажи под угрозой</dt>
+            <OpenRisk alerts={slimAlerts} />
+          </div>
         </dl>
       </Panel>
 
@@ -73,17 +72,9 @@ export default function Dashboard() {
         <section aria-labelledby="attention">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="attention" className="text-lg font-semibold">Требуют внимания</h2>
-            <p className="flex gap-3 text-sm text-muted">
-              <span><span className="font-semibold text-critical">{count("critical")}</span> критично</span>
-              <span><span className="font-semibold text-high">{count("high")}</span> высокий</span>
-              <span><span className="font-semibold text-medium">{count("medium")}</span> средний</span>
-            </p>
+            <OpenCounts alerts={slimAlerts} />
           </div>
-          <div className="space-y-3">
-            {alerts.map((a) => (
-              <AlertCard key={a.id} alert={a} data={d} compact />
-            ))}
-          </div>
+          <AlertList items={alerts.map((a) => ({ id: a.id, card: <AlertCard alert={a} data={d} compact /> }))} />
         </section>
 
         <aside className="space-y-6">
@@ -156,11 +147,11 @@ export default function Dashboard() {
   );
 }
 
-function Kpi({ label, value, note, tone }: { label: string; value: string; note: string; tone?: "critical" }) {
+function Kpi({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div>
       <dt className="text-sm text-muted">{label}</dt>
-      <dd className={`mt-1 whitespace-nowrap font-display text-xl font-semibold tracking-tight sm:text-2xl ${tone === "critical" ? "text-critical" : ""}`}>
+      <dd className={`mt-1 whitespace-nowrap font-display text-xl font-semibold tracking-tight sm:text-2xl `}>
         {value}
       </dd>
       <dd className="mt-0.5 text-xs text-muted">{note}</dd>

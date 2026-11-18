@@ -113,3 +113,16 @@
 - Assumptions: revenue basis 25 ТП × 100 точек × 200 000 ₸/мес × 12 = 6 млрд ₸ (team estimate,
   labelled as such); write-off reduction valued at cost = revenue × (1 − margin); breakeven = cumulative
   cash ≥ 0 by month 12 from project start (6 months of effect).
+
+## 2026-11-19 01:31 lead
+- T22: riskSummary() in src/lib/engine/risk.ts (+5 tests). «Продажи под угрозой» = lost sales, per rep
+  max(largest rep-level loss, sum of outlet-level freezer losses); plan gap shown separately (it is a
+  target shortfall, not a loss). Demo: 3 646 665 ₸/мес lost sales + 2 894 000 ₸ plan gap (was 7 002 665
+  summed). Used in dashboard, /alerts summary, daily digest, /settings.
+- T23: «Отметить обработанным» / «Вернуть» on every AlertCard; localStorage key puls.handledAlerts.v1 via
+  useSyncExternalStore (try/catch, server snapshot = none handled); handled cards in a dimmed
+  «Обработанные · N» section; dashboard severity counters and risk KPI computed on open alerts.
+  Pure logic src/lib/handled.ts (+4 tests). Playwright: click → reload → persists; «Вернуть» restores.
+- T25 (subagent, reviewed): SFA-class comparison table in DOCUMENTATION «Обзор решения», PITCH slide 3
+  bullet + 2 jury answers. Breakeven numbers to fill in T26 after codex T21.
+- 43 tests, smoke OK. Next: wait for codex T21 / gemini T24, then T26.

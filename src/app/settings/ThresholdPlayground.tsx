@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Panel, SeverityBadge } from "@/components/ui";
 import { generateDataset } from "@/lib/data/generate";
-import { analyze, DEFAULT_CONFIG, type EngineConfig } from "@/lib/engine";
+import { analyze, DEFAULT_CONFIG, riskSummary, type EngineConfig } from "@/lib/engine";
 import { TYPE_LABEL } from "@/lib/engine/notify";
 import { fmtMoney } from "@/lib/format";
 import type { DeviationType } from "@/lib/types";
@@ -34,12 +34,10 @@ export function ThresholdPlayground() {
   const { alerts, byType, impact } = useMemo(() => {
     const alerts = analyze(dataset, config);
     const byType = new Map<DeviationType, number>();
-    let impact = 0;
     for (const alert of alerts) {
       byType.set(alert.type, (byType.get(alert.type) ?? 0) + 1);
-      impact += alert.impact;
     }
-    return { alerts, byType, impact };
+    return { alerts, byType, impact: riskSummary(alerts).lostSales };
   }, [dataset, config]);
 
   return (
@@ -92,7 +90,7 @@ export function ThresholdPlayground() {
               <dd className="mt-1 text-2xl font-semibold">{alerts.length}</dd>
             </div>
             <div>
-              <dt className="text-sm text-muted">Сумма под риском за месяц</dt>
+              <dt className="text-sm text-muted">Продажи под угрозой за месяц (без двойного учёта, без недобора плана)</dt>
               <dd className="mt-1 text-2xl font-semibold">{fmtMoney(impact)}</dd>
             </div>
           </dl>
