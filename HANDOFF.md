@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 01:00 · by: Claude (lead, night run) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 01:35 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -24,9 +24,9 @@ per Hack.IT template, presentation, financial model (.xlsx), video of the produc
 - [ ] Sent to Telegram @hackit_administration before 20.11 17:00
 
 ## Status
-**Night run finished — every acceptance criterion in `night/SPEC.md` verified, `night/DONE` created.**
-Product «Пульс продаж» works end to end on demo data and is deployed. What's left is for humans
-(video, slides, template, submission) — see "Left to do".
+**Phase 2 in progress** (owner added it at 01:35, `night/SPEC.md` «Фаза 2», tasks T21–T28 in
+`night/TASKS.md`). Phase 1 is done and deployed; the app keeps working after every merge.
+The prod deploy still shows phase 1 until T28 redeploys.
 
 ## Done
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
@@ -44,8 +44,14 @@ Product «Пульс продаж» works end to end on demo data and is deploye
   + jury Q&A), `docs/DEMO.md` (video script, ~3 min). `scripts/smoke.sh` — build + route checks.
 - Deployed to Vercel (project `puls-prodazh`). Fresh clone → `npm install && npm run build && npm test` OK.
 
-## In progress
-- Nothing.
+## In progress (phase 2)
+- Done on the night branch: T22 «Продажи под угрозой» without double counting (3 646 665 ₸/мес lost
+  sales + 2 894 000 ₸ plan gap shown separately), T23 «Отметить обработанным» (localStorage),
+  T25 comparison with the SFA class + jury answers in DOCUMENTATION/PITCH.
+- codex: T21 finance realism (revenue basis sheet, breakeven sheet, write-offs at cost).
+- gemini: T24 `/mobile` rep-app prototype.
+- lead next: T26 sync all numbers after T21, T27 DEMO, T28 redeploy + DONE.
+- Until T26: docs still quote the phase-1 numbers (7,0 млн at risk, 87,6 млн net effect).
 
 ## Left to do (humans, before 20.11 17:00)
 1. Make the GitHub repo public (Settings → General → Danger zone → Change visibility).
