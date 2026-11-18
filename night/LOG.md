@@ -126,3 +126,16 @@
 - T25 (subagent, reviewed): SFA-class comparison table in DOCUMENTATION «Обзор решения», PITCH slide 3
   bullet + 2 jury answers. Breakeven numbers to fill in T26 after codex T21.
 - 43 tests, smoke OK. Next: wait for codex T21 / gemini T24, then T26.
+
+## 2026-11-19 01:43 gemini
+- T24 done: created mobile rep app prototype at `/mobile` (server component `src/app/mobile/page.tsx`, client component `src/app/mobile/MobileApp.tsx`).
+  Features:
+  - Centred phone frame (~390×780 px, rounded-[2.5rem], dark border, inner scroll, top status bar, bottom 3-tab navigation: «Маршрут», «Визит», «Заказ»).
+  - Tab «Маршрут»: list of the day's outlets (planned time, outlet name, address, status badges: выполнен / пропущен / предстоит; tap selects outlet and opens «Визит»).
+  - Tab «Визит»: outlet info, GPS check-in button simulating coordinates and distance check against DEFAULT_CONFIG.gpsMaxDistanceM (green «В точке: N м» vs red «Слишком далеко от точки: N м — отметка уйдёт супервайзеру»), distant GPS simulator, Block «Ларь компании» (QR scan showing freezer id/model or «Ларь не найден — будет создано отклонение», photo capture with demo thumbnail).
+  - Tab «Заказ»: 6 dairy SKUs with prices in ₸, +/- quantity steppers, live total formatted with fmtMoney, order submit button with confirmation «Заказ отправлен (демо)».
+  - Added «Приложение ТП» link to Nav.tsx.
+  - Added check_endpoint "/mobile" "Прототип экрана" to scripts/smoke.sh.
+  - Verification: `npx tsc --noEmit && npx eslint src && npm run build` passed (/mobile in build output), all 43 vitest tests passed, `bash scripts/smoke.sh` exit 0.
+- Assumptions: Picks rep r01 and date 2026-10-03 containing both an outlet with a company freezer (o003) and a kiosk without a freezer (o008), allowing testing both QR scan branches.
+- Next: Check TASKS.md for further worker tasks or report IDLE.

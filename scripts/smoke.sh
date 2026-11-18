@@ -96,3 +96,5 @@ if [ -d "src/app/finance" ] || [ -f "src/app/finance/page.tsx" ]; then
 else
   echo "Skipping /finance (route does not exist yet)"
 fi
+
+check_endpoint "/mobile" "Прототип экрана"
