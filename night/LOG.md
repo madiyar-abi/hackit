@@ -46,3 +46,13 @@
   Severity routing: critical → РОП (Telegram+e-mail) + супервайзер; high → супервайзер Telegram;
   medium → супервайзер e-mail. Company/people in demo data are fictional.
 - Next: UI screens T6–T9 (subagents), merge workers.
+
+## 2026-11-19 00:44 lead
+- Merged codex T10 (finance model verified with formulas lib: OK) and gemini T11.
+- T6–T9 done via 2 subagents + lead (dashboard). Reviewed via Playwright screenshots; dates in alert
+  texts now dd.mm.yyyy. Build: 140 static pages, /alerts dynamic (query filters).
+- T13: deployed to Vercel, project puls-prodazh → https://puls-prodazh-nine.vercel.app (all routes 200).
+- T14/T16 drafts written (DOCUMENTATION.md all 16 sections; PITCH.md + Q&A). Added T18 (codex),
+  T19 (gemini). README + HANDOFF updated.
+- Assumption: Onest/Unbounded fonts bundled via @fontsource (offline build).
+- Next: T15 DEMO.md, merge T12/T18/T19, final pass T17.

@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 00:25 · by: Claude (setup) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 00:45 · by: Claude (lead, night run) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -12,45 +12,65 @@
 Submission: Telegram @hackit_administration — team name, track (Business), documentation
 per Hack.IT template, presentation, financial model (.xlsx), video of the product working.
 
-- [ ] Working end-to-end demo flow
-- [ ] `README.md`: what it is, how to run — the jury opens the repo
+- [x] Working end-to-end demo flow — https://puls-prodazh-nine.vercel.app
+- [x] `README.md`: what it is, how to run, deploy link
 - [ ] GitHub repo viewable by the jury — **it's private now**: make it public
       (or otherwise give access) before submitting
-- [ ] Demo video — script: `docs/DEMO.md` (written by the night agent)
-- [ ] Presentation — outline: `docs/PITCH.md` (written by the night agent)
-- [ ] Documentation — draft `docs/DOCUMENTATION.md` → format it, fill team names
-- [ ] Financial model — `finance/financial-model.xlsx`
+- [ ] Demo video — record by the script in `docs/DEMO.md`
+- [ ] Presentation — make slides from `docs/PITCH.md` (8 slides, 5 min) + rehearse Q&A
+- [ ] Documentation — `docs/DOCUMENTATION.md` → put into the Hack.IT template, fill team
+      names (`[Название команды]`, `[Участник N]`), add screenshots
+- [x] Financial model — `finance/financial-model.xlsx` (open in Excel once and save so cached values appear)
 - [ ] Sent to Telegram @hackit_administration before 20.11 17:00
 
 ## Status
-Case received and written to `night/SPEC.md`. Night run (lead + gemini + codex)
-starts 2026-11-19 ~00:30 on branch `night/2026-11-19`, until 07:00. No product code yet.
+Product «Пульс продаж» works end to end on demo data and is deployed. Night run
+(lead + gemini + codex) in progress until 07:00: finance page `/finance`, finance model v2,
+smoke test, jury materials polish.
 
 ## Done
-- Repo https://github.com/madiyar-abi/hackit, same setup as `genesis`:
-  `.gitignore` for personal/editor files, `README.md`, `CLAUDE.md` (agent rules).
-- Autonomous run: `NIGHT.md` (protocol) + `scripts/night.sh` (watchdog: switches
-  model/account on usage limits, sleeps 1h when all are exhausted, stops at `--until`).
-- Team: lead = Claude Code; workers = `gemini` (Antigravity CLI, 3 Google
-  accounts, Opus 4.6 → Gemini Flash) and `codex` (Codex CLI, 2 ChatGPT Plus
-  accounts), each in its own worktree (`../hackit-gemini`, `../hackit-codex`) and branch.
+- Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
+  карточка ТП `/reps/[id]`, карточка точки `/outlets/[id]`, уведомления `/notifications`.
+- Engine (`src/lib/engine/`): 6 detectors (5 case situations + GPS), cause rules with evidence,
+  recommended actions, notification routing/texts, thresholds in `config.ts`. 31 vitest tests.
+- Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
+  8 alerts found (3 critical / 3 high / 2 medium), 7 215 618 ₸/мес at risk.
+- Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
+  87 600 000 ₸/year, ROI 222,4%, payback 3,7 months.
+- Docs: `docs/DOCUMENTATION.md` (all 16 template sections), `docs/PITCH.md` (+ Q&A).
+- Deployed to Vercel (project `puls-prodazh`).
 
 ## In progress
-- Night run: building the Next.js app + Excel financial model per `night/SPEC.md`.
+- See `night/TASKS.md`: T12 `/finance` page (gemini), T18 finance v2 (codex), T19 smoke test
+  (gemini), T15 `docs/DEMO.md`, T17 final check (lead).
 
-## Left to do
-- Full task list with acceptance checks: `night/TASKS.md` (created when the case arrives).
-- Fill the `[TODO]` sections in `CLAUDE.md` and above once the case/stack are known.
+## Left to do (humans, before 20.11 17:00)
+1. Make the GitHub repo public (Settings → General → Danger zone → Change visibility).
+2. Record the 2–3 min video by `docs/DEMO.md` (screen recording of the deployed app).
+3. Slides from `docs/PITCH.md`; documentation into the Hack.IT template; fill team names.
+4. Open `finance/financial-model.xlsx` in Excel, check sheets, Save (stores calculated values).
+5. Send everything to @hackit_administration.
 
 ## Decisions & assumptions
 - Work goes through branches + PRs into `main`; nobody pushes to `main` directly.
 - Agents never ask questions; every assumption is logged in `night/LOG.md`.
-- Agreed with the owner: Next.js web app + Excel financial model, deploy to Vercel,
-  no LLM/external APIs, docs/pitch as Markdown drafts, team names as placeholders,
-  everything in Russian.
+- Next.js web app + Excel model, Vercel, no LLM/external APIs, Russian UI/docs.
+- Demo company «Молочный завод «Долина»», people and outlets are fictional; Almaty districts.
+- Case situations 3 and 4 are each shown in two variants (freezer never installed / missing
+  on audit; competitor product in freezer / outlet closed). Extra type: GPS check-in > 300 м.
+- Severity routing: critical → head of sales (Telegram + e-mail) + supervisor; high →
+  supervisor Telegram; medium → supervisor e-mail. Sending is simulated.
 
 ## How to run
-- [TODO: install / dev / test commands — mirror of CLAUDE.md once known.]
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm test         # 31 unit tests
+npm run build    # production build
+vercel deploy --prod   # redeploy (Vercel CLI logged in as the owner)
+```
+Finance model rebuild/verify: see `finance/README.md` (`python3 finance/build_model.py`,
+verify needs `finance/.venv` with `formulas`).
 
 ## How to continue (process for the next person)
 1. `git pull` → read this file → open `night/TASKS.md`.

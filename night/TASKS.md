@@ -15,7 +15,7 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 - [x] T7 (lead) Alerts list `/alerts` with filters (type, severity, rep) — files: src/app/alerts/* — accept: build passes, filters work via query params
 - [x] T8 (lead) Rep card `/reps/[id]` and outlet card `/outlets/[id]` — files: src/app/reps/*, src/app/outlets/* — accept: build passes, pages statically generated
 - [x] T9 (lead) Notifications feed `/notifications` with simulated send (Telegram / e-mail preview) — files: src/app/notifications/* — accept: build passes
-- [ ] T13 (lead) Deploy to Vercel; link in README.md and HANDOFF.md — accept: link opens dashboard
+- [x] T13 (lead) Deploy to Vercel; link in README.md and HANDOFF.md — accept: link opens dashboard
 
 ## Workers
 - [x] T10 (codex) Financial model generator — files: finance/build_model.py, finance/financial-model.xlsx, finance/summary.json, finance/verify.py, finance/README.md — accept: `python3 finance/build_model.py && python3 finance/verify.py` exit 0 (see "Notes for T10" below)
