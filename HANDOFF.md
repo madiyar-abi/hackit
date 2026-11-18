@@ -61,8 +61,7 @@ The prod deploy still shows phase 1 until T28 redeploys.
 3. Slides from `docs/PITCH.md`; documentation into the Hack.IT template; fill team names.
 4. Open `finance/financial-model.xlsx` in Excel, check sheets, Save — the file is generated with
    formulas only (Excel recalculates on open); saving stores the values so previews show numbers.
-5. Optional: rehearse the Q&A in `docs/PITCH.md`; known soft spot — «Продажи под угрозой» sums
-   the plan gap of the new rep (2,9 млн) with other alerts; loss reduction is computed on revenue.
+5. Optional: rehearse the Q&A in `docs/PITCH.md` (incl. «чем вы лучше SFA?», «откуда 6 млрд?»).
 6. Send everything to @hackit_administration.
 
 ## Decisions & assumptions
