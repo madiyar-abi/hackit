@@ -3,7 +3,7 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 import { HANDLED_KEY, type SlimAlert, parseHandled, setHandled, severityCounts, splitByHandled } from "@/lib/handled";
 import { riskSummary } from "@/lib/engine/risk";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, plural } from "@/lib/format";
 
 const EMPTY: string[] = [];
 let cache: string[] | null = null;
@@ -114,7 +114,7 @@ export function OpenRisk({ alerts }: { alerts: SlimAlert[] }) {
         {fmtMoney(r.lostSales)}
       </dd>
       <dd className="mt-0.5 text-xs text-muted">
-        в месяц, по {open.length} открытым отклонениям без двойного учёта
+        в месяц, по {plural(open.length, ["открытому отклонению", "открытым отклонениям", "открытым отклонениям"])} без двойного учёта
         {r.planGap > 0 && <>; отдельно недобор плана {fmtMoney(r.planGap)}</>}
       </dd>
     </>
