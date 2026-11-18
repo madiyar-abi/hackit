@@ -8,3 +8,8 @@
   assumptions defined by lead in TASKS.md "Notes for T10" (total ≈ 27.17 млн ₸ ≤ 30 млн).
 - No LibreOffice on this Mac → formula evaluation for verification via pycel/formulas in a venv.
 - Next: T1 scaffold, T2 data, T3–T5 engine.
+
+## 2026-11-19 00:28 lead
+- T1 done: Next.js 15.5 (App Router, TS, Tailwind 4) + vitest 3 scaffolded at repo root.
+  Removed next/font/google (needs internet at build) → system font stack. build + test pass.
+- Assumption: package name `puls-prodazh`; .gitignore kept ours + Next/Vercel entries + finance/.venv/.

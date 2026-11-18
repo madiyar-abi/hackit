@@ -6,7 +6,7 @@ Product name: **«Пульс продаж»** (веб-приложение ко�
 Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — Python + openpyxl.
 
 ## Core app (lead)
-- [ ] T1 (lead) Scaffold Next.js app + vitest + README run steps — files: package.json, tsconfig.json, next.config.*, src/app/layout.tsx, src/app/globals.css, vitest.config.ts, README.md — accept: `npm install && npm run build && npm test` pass
+- [x] T1 (lead) Scaffold Next.js app + vitest + README run steps — files: package.json, tsconfig.json, next.config.*, src/app/layout.tsx, src/app/globals.css, vitest.config.ts, README.md — accept: `npm install && npm run build && npm test` pass
 - [ ] T2 (lead) Domain types + deterministic demo data (12 reps, 120+ outlets, sales plan/fact by period, planned/actual visits with GPS/time, freezers) containing all 5 case situations — files: src/lib/types.ts, src/lib/data/* — accept: vitest asserts each of the 5 situations exists in data
 - [ ] T3 (lead) Deviation engine: 5 detectors (missed visits, sales drop ≥30%, outlet without freezer, freezer without sales, plan ≤50%), thresholds in config — files: src/lib/engine/config.ts, src/lib/engine/detect.ts, src/lib/engine/*.test.ts — accept: `npm test` green, one test per type
 - [ ] T4 (lead) Possible causes + recommended actions (rules correlating related data, with evidence) — files: src/lib/engine/causes.ts (+test) — accept: every alert in demo data has ≥1 cause with evidence and an action
