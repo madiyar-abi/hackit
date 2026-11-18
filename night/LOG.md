@@ -14,6 +14,17 @@
   Removed next/font/google (needs internet at build) → system font stack. build + test pass.
 - Assumption: package name `puls-prodazh`; .gitignore kept ours + Next/Vercel entries + finance/.venv/.
 
+## 2026-11-19 00:31 codex
+- T10 complete. Generated the five-sheet Excel workbook and the exact JSON contract for T12.
+  Ran `python3 finance/build_model.py && python3 finance/verify.py`. Independent formula
+  evaluation passed for the budget and all three scenarios.
+- Assumptions: monthly implementation costs are editable on «Бюджет» as allowed in T10.
+  Reserve remains OPEX. ROI uses 12 months of operations after deployment. Payback starts
+  when benefits begin. Excel recalculates on open. The virtualenv ignore rule was already present.
+- Budget 27 170 000 ₸ over six months. Base annual net effect 87 600 000 ₸,
+  first-year ROI 222.4%, payback 3.72 months.
+- Next: lead merges the worker branch so T12 can use finance/summary.json.
+
 ## 2026-11-19 00:34 lead
 - T2–T5 done: src/lib/types.ts, src/lib/data/generate.ts (seeded, 12 reps / 120 outlets / 4 months,
   SCENARIO map plants the 5 case situations + GPS bonus), src/lib/engine/{config,detect,causes,notify,index}.ts.
