@@ -39,7 +39,7 @@ Order = priority. Phase 1 must keep working (tests, smoke, deploy, README).
 - [x] T24 (gemini) Mobile rep app prototype `/mobile` (see "Notes for T24") — files: src/app/mobile/*, one line in src/components/Nav.tsx, one check line in scripts/smoke.sh — accept: `npx tsc --noEmit && npx eslint src && npm run build` pass, `/mobile` in build output, `bash scripts/smoke.sh` exit 0
 - [x] T25 (lead) Comparison with existing SFA/merchandising class + jury answers «чем вы лучше готовых систем?», «откуда 6 млрд выручки?» — files: docs/DOCUMENTATION.md, docs/PITCH.md — accept: sections present, only verifiable claims, no product names
 - [x] T26 (lead) Merge T21: `/finance` shows revenue basis + breakeven from summary.json; all numbers in /finance, DOCUMENTATION.md, PITCH.md, README, HANDOFF match summary.json — files: src/app/finance/*, src/components/finance/*, docs/* — accept: build passes; grep of old numbers (87 600 000, 222,4, 3,7 мес) finds nothing stale
-- [ ] T27 (lead) docs/DEMO.md: alert-handling step (+ /mobile step if T24 done) — accept: steps reproducible on deploy
+- [x] T27 (lead) docs/DEMO.md: alert-handling step (+ /mobile step if T24 done) — accept: steps reproducible on deploy
 - [ ] T28 (lead) Final phase 2: `npm test`, `bash scripts/smoke.sh`, `vercel deploy --prod` (project puls-prodazh), verify prod shows new version, README/HANDOFF/PITCH/DEMO current, phase 2 acceptance re-checked, `night/DONE` — accept: all SPEC phase-2 criteria checked
 
 ## Notes for T21 (codex) — finance model realism

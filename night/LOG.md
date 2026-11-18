@@ -159,3 +159,11 @@
   - Verification: `npx tsc --noEmit && npx eslint src && npm run build` passed (/mobile in build output), all 43 vitest tests passed, `bash scripts/smoke.sh` exit 0.
 - Assumptions: Picks rep r01 and date 2026-10-03 containing both an outlet with a company freezer (o003) and a kiosk without a freezer (o008), allowing testing both QR scan branches.
 - Next: Check TASKS.md for further worker tasks or report IDLE.
+
+## 2026-11-19 01:46 lead
+- Merged gemini T24 (/mobile): tsc, eslint, 43 tests, smoke (incl. /mobile) pass; Playwright click-through
+  route → GPS check-in (58 м green, simulated far → red) → freezer QR/photo → order, no console errors.
+  Note: demo data has 2 visits per rep per day, so the route shows 2 stops — left as is (honest data).
+- T27: DEMO.md step 7а (/mobile), alert-handling step already in step 3. Docs: /mobile in prototype list,
+  SFA table row «нет мобильного приложения» → «есть только макет экрана», README routes + smoke, test
+  count 34 → 43 everywhere. Next: T28 final checks + redeploy + DONE.

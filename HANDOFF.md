@@ -32,7 +32,7 @@ The prod deploy still shows phase 1 until T28 redeploys.
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
   карточка ТП `/reps/[id]`, карточка точки `/outlets/[id]`, уведомления `/notifications`.
 - Engine (`src/lib/engine/`): 6 detectors (5 case situations + GPS), cause rules with evidence,
-  recommended actions, notification routing/texts, thresholds in `config.ts`. 34 vitest tests.
+  recommended actions, notification routing/texts, thresholds in `config.ts`. 43 vitest tests.
 - Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
   8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
 - Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
@@ -78,7 +78,7 @@ The prod deploy still shows phase 1 until T28 redeploys.
 ```bash
 npm install
 npm run dev      # http://localhost:3000
-npm test         # 34 unit tests
+npm test         # 43 unit tests
 bash scripts/smoke.sh  # build + start + check all routes
 npm run build    # production build
 vercel deploy --prod   # redeploy (Vercel CLI logged in as the owner)
