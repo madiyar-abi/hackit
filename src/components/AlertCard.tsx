@@ -33,7 +33,7 @@ export function AlertCard({ alert, data, compact = false }: { alert: Alert; data
           </p>
         </div>
         <div className="text-right">
-          <div className="font-display text-xl font-semibold tracking-tight">{fmtMoney(alert.impact)}</div>
+          <div className="whitespace-nowrap font-display text-xl font-semibold tracking-tight">{fmtMoney(alert.impact)}</div>
           <div className="text-xs text-muted">под угрозой в месяц</div>
         </div>
       </div>

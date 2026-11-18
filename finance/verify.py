@@ -18,7 +18,7 @@ def verify():
     summary = json.loads((DIRECTORY / "summary.json").read_text(encoding="utf-8"))
     with WORKBOOK.open("rb") as source:
         workbook = load_workbook(source, read_only=True)
-        for sheet in ("Бюджет", "Эффект", "Сценарии"):
+        for sheet in ("Бюджет", "Эффект", "Сценарии", "Денежный поток", "Чувствительность"):
             assert any(cell.data_type == "f" for row in workbook[sheet].rows for cell in row), sheet
         workbook.close()
 
@@ -53,6 +53,42 @@ def verify():
             tolerance = 1 if row <= 6 else 1e-9
             compare("Сценарии", f"{column}{row}", scenario[key], tolerance)
         compare("Эффект", f"{column}8", scenario["netAnnualEffect"])
+
+    cash = summary["cashflow"]
+    cash_sheet = "Денежный поток"
+    compare(cash_sheet, "H2", cash["discountRatePct"], 0)
+    monthly_discount = (1 + cash["discountRatePct"] / 100) ** (1 / 12) - 1
+    compare(cash_sheet, "H3", monthly_discount, 1e-9)
+    compare(cash_sheet, "H4", cash["npv"])
+    payback_month = cash["paybackMonth"]
+    assert cell(cash_sheet, "H5") == (payback_month if payback_month is not None else "За горизонтом")
+    assert cash["months"] == list(range(1, 25))
+    for month, net, cumulative in zip(cash["months"], cash["net"], cash["cumulative"], strict=True):
+        compare(cash_sheet, f"A{month + 1}", month, 0)
+        compare(cash_sheet, f"B{month + 1}", net)
+        compare(cash_sheet, f"C{month + 1}", cumulative)
+        compare(cash_sheet, f"D{month + 1}", net / (1 + monthly_discount) ** month)
+
+    base_inputs = {item["name"]: item["values"][1] for item in summary["assumptions"]}
+    revenue = base_inputs["Выручка канала торговых представителей"]
+    margin = base_inputs["Валовая маржа"] / 100
+    idle_freezers = (
+        base_inputs["Морозильные лари компании"] * base_inputs["Доля ларей без продаж"] / 100
+    )
+    annual_freezer_sales = base_inputs["Продажи на один активный ларь"] * 12
+    base = summary["scenarios"][1]
+    sensitivity = "Чувствительность"
+    for col, reactivation in zip("BCD", (30, 50, 70), strict=True):
+        compare(sensitivity, f"{col}1", reactivation, 0)
+        compare(sensitivity, f"{col}8", reactivation, 0)
+        for uplift in range(1, 6):
+            row = uplift + 1
+            compare(sensitivity, f"A{row}", uplift, 0)
+            compare(sensitivity, f"A{row + 7}", uplift, 0)
+            uplift_revenue = revenue * uplift / 100 + idle_freezers * reactivation / 100 * annual_freezer_sales
+            net = uplift_revenue * margin + base["lossReduction"] - base["annualOpex"]
+            compare(sensitivity, f"{col}{row}", net)
+            compare(sensitivity, f"{col}{row + 7}", 12 * budget["total"] / net, 1e-9)
     print("Формулы Excel совпадают со сводкой. Бюджет и срок в пределах ограничений.")
 
 

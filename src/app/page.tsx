@@ -160,7 +160,7 @@ function Kpi({ label, value, note, tone }: { label: string; value: string; note:
   return (
     <div>
       <dt className="text-sm text-muted">{label}</dt>
-      <dd className={`mt-1 font-display text-2xl font-semibold tracking-tight ${tone === "critical" ? "text-critical" : ""}`}>
+      <dd className={`mt-1 whitespace-nowrap font-display text-xl font-semibold tracking-tight sm:text-2xl ${tone === "critical" ? "text-critical" : ""}`}>
         {value}
       </dd>
       <dd className="mt-0.5 text-xs text-muted">{note}</dd>

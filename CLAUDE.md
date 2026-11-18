@@ -13,11 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 every finished task.
 
 ## What this is
-- [TODO: one or two sentences — what hackit does and who uses it.]
+- «Пульс продаж»: web app for a dairy producer's head of sales — detects sales-rep deviations
+  (missed visits, sales drop, freezers, plan), explains causes by rules, notifies managers. Hack.IT case.
 - Repo: https://github.com/madiyar-abi/hackit (private), default branch `main`.
-- Current state: **no product code yet** — only the agent-team scaffolding
-  (`NIGHT.md`, `HANDOFF.md`, `scripts/night.sh`). Don't invent run/test commands;
-  fill the TODOs below once the case lands in `night/SPEC.md` and a stack is chosen.
+- Deployed: https://puls-prodazh-nine.vercel.app (Vercel project `puls-prodazh`).
 
 ## Hackathon context
 - Hack.IT, Business track: sales-team efficiency for a dairy producer. Case → `night/SPEC.md`
@@ -29,25 +28,30 @@ every finished task.
   README run steps must always work — the jury opens the repo.
 
 ## Stack
-- Planned: Next.js (TypeScript) on Vercel, demo data in-repo, financial model as .xlsx.
-  No LLM / external APIs. UI and docs in Russian.
-- [TODO: confirm once code exists.]
+- Next.js 15 (App Router, TS), React 19, Tailwind 4, vitest 3; fonts via @fontsource (offline build).
+- Finance model: Python + openpyxl (`finance/build_model.py`), verified with `formulas` in `finance/.venv`.
+- No LLM / external APIs. UI and docs in Russian.
 
 ## Run / test / build
-- Install: `[TODO]`
-- Dev: `[TODO — command and local URL]`
-- Test: `[TODO — full suite; how to run a single test]`
-- Lint/format: `[TODO]`
+- Install: `npm install`
+- Dev: `npm run dev` → http://localhost:3000
+- Test: `npm test`; single file: `npx vitest run src/lib/engine/engine.test.ts`
+- Lint/types: `npx eslint src && npx tsc --noEmit`; build: `npm run build`
+- Finance: `python3 finance/build_model.py && finance/.venv/bin/python finance/verify.py`
 - Watchdog script: `bash -n scripts/night.sh` (syntax). To exercise it without a real
   agent, point `CLAUDE_BIN` / `AGY_BIN` / `CODEX_BIN` at a stub and shrink the sleeps:
   `LIMIT_SLEEP`, `ERROR_SLEEP`, `IDLE_SLEEP`, `NEXT_SLEEP`, `NAP_POLL`, `RUN_POLL`.
 
 ## Where things live
-- [TODO: e.g. "Business logic in `src/domain/`; routes are thin controllers in `src/api/`."]
-- [TODO: data layer, migrations, generated code.]
+- Domain types `src/lib/types.ts`; demo data generator `src/lib/data/generate.ts` (seeded; `SCENARIO` plants the case situations).
+- Engine (pure functions + tests): `src/lib/engine/` — `config.ts` thresholds, `detect.ts`, `causes.ts`, `notify.ts`.
+- UI gets data only via `src/lib/app-data.ts`; shared UI in `src/components/` (`ui.tsx`, `AlertCard.tsx`).
+- Pages: `src/app/` (`/`, `/alerts`, `/reps`, `/reps/[id]`, `/outlets/[id]`, `/notifications`, `/finance`, `/settings`).
+- `finance/financial-model.xlsx` and `finance/summary.json` are generated — edit `build_model.py`, not them.
 
 ## Conventions
-- [TODO: naming, error handling, test placement, import style.]
+- Tests next to code as `*.test.ts`; imports via `@/`. Money via `fmtMoney` (`src/lib/format.ts`).
+- Numbers in `docs/*.md` must match the app output and `finance/summary.json`.
 - Commits: small, one logical change each, clear message.
 - Work on a feature branch and open a PR into `main`; never push directly to `main`.
 
@@ -60,14 +64,16 @@ every finished task.
 
 ## Do NOT touch
 - `night/SPEC.md` — the case spec, source of truth; never edit it.
-- [TODO: generated files, legacy folders, infra/CI config — flag instead of editing.]
+- `finance/financial-model.xlsx`, `finance/summary.json` — regenerate, never hand-edit.
 
 ## Gotchas
 - `scripts/night.sh` is macOS-only (`date -j`, `date -r`, `caffeinate`).
 - `night.sh` decides success/usage-limit/IDLE by grepping each engine's JSON output
   (`.night-logs/<name>-<engine>-run-N.json`); changing an engine's CLI flags or
   output format silently breaks limit detection and account switching.
-- [TODO: anything the agent keeps getting wrong or can't infer from the code.]
+- `next/font/google` needs internet at build — use @fontsource instead.
+- `vercel link` appends `.env*` to `.gitignore` — already covered, revert that line.
+- Rebuilding the xlsx changes its bytes (timestamps) — don't commit a rebuild without a real change.
 
 ## Overnight / autonomous runs
 - Unattended runs follow `NIGHT.md` (launched by `scripts/night.sh`). If the
