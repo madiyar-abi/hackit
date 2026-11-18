@@ -16,7 +16,7 @@ import {
   repVisits,
   totalSales,
 } from "../selectors";
-import { fmtMoney, fmtPct } from "../format";
+import { fmtDate, fmtMoney, fmtPct } from "../format";
 
 interface Explanation {
   causes: Cause[];
@@ -166,8 +166,8 @@ function explainNoFreezer(dev: Deviation, d: Dataset, c: EngineConfig): Explanat
         {
           title: "Ларь компании вывезен или утерян",
           evidence: [
-            `Ларь ${f.id} (${f.model}) числится за точкой с ${f.installedAt}`,
-            `Проверка ${f.lastAudit?.date}: ларь не найден${f.lastAudit?.note ? ` — «${f.lastAudit.note}»` : ""}`,
+            `Ларь ${f.id} (${f.model}) числится за точкой с ${fmtDate(f.installedAt)}`,
+            `Проверка ${fmtDate(f.lastAudit!.date)}: ларь не найден${f.lastAudit?.note ? ` — «${f.lastAudit.note}»` : ""}`,
           ],
           confidence: "высокая",
         },
@@ -217,7 +217,7 @@ function explainFreezerNoSales(dev: Deviation, d: Dataset): Explanation {
     causes.push({
       title: "Ларь используется под продукцию конкурента",
       evidence: [
-        `Проверка ${f.lastAudit.date}: доля нашей продукции в ларе ${f.lastAudit.ourProductSharePct}%`,
+        `Проверка ${fmtDate(f.lastAudit.date)}: доля нашей продукции в ларе ${f.lastAudit.ourProductSharePct}%`,
         ...(f.lastAudit.note ? [`«${f.lastAudit.note}»`] : []),
       ],
       confidence: "высокая",
@@ -274,7 +274,7 @@ function explainPlan(dev: Deviation, d: Dataset, c: EngineConfig): Explanation {
   if (tenure <= c.newRepMonths) {
     causes.push({
       title: "Новый сотрудник — период адаптации",
-      evidence: [`В компании с ${rep.hiredAt} (${tenure} мес.)`],
+      evidence: [`В компании с ${fmtDate(rep.hiredAt)} (${tenure} мес.)`],
       confidence: "высокая",
     });
   }
@@ -341,14 +341,14 @@ function explainGps(dev: Deviation, d: Dataset): Explanation {
       title: "Отметки о визитах сделаны из одного места — вероятна имитация визитов",
       evidence: [
         `${vs.length} отметки в разных точках сделаны с одних координат (${[...coords][0]})`,
-        ...vs.map((v) => `${getOutlet(d, v.outletId).name}, ${v.date} ${v.checkInTime}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
+        ...vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)} ${v.checkInTime}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
       ],
       confidence: "высокая",
     });
   } else {
     causes.push({
       title: "Отметка сделана не в точке",
-      evidence: vs.map((v) => `${getOutlet(d, v.outletId).name}, ${v.date}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
+      evidence: vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
       confidence: "средняя",
     });
   }

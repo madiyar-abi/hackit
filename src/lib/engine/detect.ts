@@ -12,7 +12,7 @@ import {
   repSales,
   repVisits,
 } from "../selectors";
-import { fmtMoney, fmtPct } from "../format";
+import { fmtDate, fmtMoney, fmtPct } from "../format";
 
 /** Simulated detection time: the morning after the period closes (engine runs nightly). */
 export const detectedAt = (period: string, minute = 0) => {
@@ -89,7 +89,7 @@ export function detectNoFreezer(d: Dataset, c: EngineConfig = DEFAULT_CONFIG): D
       period: p,
       title: `${o.name}: нет морозильного ларя компании`,
       description: registered
-        ? `Ларь ${f!.id} числится за точкой, но при проверке ${f!.lastAudit?.date} не найден.`
+        ? `Ларь ${f!.id} числится за точкой, но при проверке ${fmtDate(f!.lastAudit!.date)} не найден.`
         : `Точка категории «${o.type}» по стандарту должна иметь ларь компании, но он не установлен.`,
       repId: o.repId,
       outletId: o.id,
@@ -115,7 +115,7 @@ export function detectFreezerNoSales(d: Dataset, c: EngineConfig = DEFAULT_CONFI
       severity: "high",
       period: p,
       title: `${o.name}: ларь установлен, продаж нет`,
-      description: `Ларь ${f.id} (${f.model}) стоит с ${f.installedAt}, продажи за период: ${fmtMoney(sales)}.`,
+      description: `Ларь ${f.id} (${f.model}) стоит с ${fmtDate(f.installedAt)}, продажи за период: ${fmtMoney(sales)}.`,
       repId: o.repId,
       outletId: o.id,
       impact,
