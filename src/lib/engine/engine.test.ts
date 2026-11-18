@@ -164,3 +164,10 @@ describe("notifications", () => {
     expect(dailyDigest(alerts, d)).toContain(`Отклонений: ${alerts.length}`);
   });
 });
+
+describe("degenerate thresholds", () => {
+  it("zero thresholds do not create empty alerts", () => {
+    expect(detectGpsMismatch(d, { ...DEFAULT_CONFIG, gpsMismatchMin: 0 }).every((a) => Number(a.metrics.suspicious) > 0)).toBe(true);
+    expect(detectMissedVisits(d, { ...DEFAULT_CONFIG, missedVisitsMin: 0 }).every((a) => Number(a.metrics.missed) > 0)).toBe(true);
+  });
+});

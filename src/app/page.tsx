@@ -136,7 +136,7 @@ export default function Dashboard() {
             action={<Link href="/notifications" className="text-sm text-frost hover:underline">Лента</Link>}
           >
             <ul className="divide-y divide-line">
-              {notifications.slice(0, 4).map((n) => (
+              {[...notifications].sort((a, b) => b.sentAt.localeCompare(a.sentAt)).slice(0, 4).map((n) => (
                 <li key={n.id} className="px-5 py-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium">

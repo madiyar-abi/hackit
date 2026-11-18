@@ -12,7 +12,7 @@ import {
   repSales,
   repVisits,
 } from "../selectors";
-import { fmtDate, fmtMoney, fmtPct } from "../format";
+import { fmtDate, fmtKm, fmtMoney, fmtPct, plural } from "../format";
 
 /** Simulated detection time: the morning after the period closes (engine runs nightly). */
 export const detectedAt = (period: string, minute = 0) => {
@@ -31,7 +31,7 @@ export function detectMissedVisits(d: Dataset, c: EngineConfig = DEFAULT_CONFIG)
   return d.reps.flatMap((rep) => {
     const vs = repVisits(d, rep.id, p);
     const missed = vs.filter((v) => v.status === "missed");
-    if (missed.length < c.missedVisitsMin) return [];
+    if (missed.length === 0 || missed.length < c.missedVisitsMin) return [];
     const outletIds = [...new Set(missed.map((v) => v.outletId))];
     const impact = Math.round(missed.length * avgOrderValue(d, rep.id, d.previousPeriod));
     return [{
@@ -39,7 +39,7 @@ export function detectMissedVisits(d: Dataset, c: EngineConfig = DEFAULT_CONFIG)
       type: "missed_visits",
       severity: missed.length >= 5 ? "high" : "medium",
       period: p,
-      title: `${rep.name}: не посещены ${outletIds.length} плановых точек`,
+      title: `${rep.name}: ${outletIds.length === 1 ? "не посещена" : "не посещены"} ${plural(outletIds.length, ["плановая точка", "плановые точки", "плановых точек"])}`,
       description: `Пропущено ${missed.length} из ${vs.length} плановых визитов (${fmtPct(missed.length / vs.length)}). Порог: ${c.missedVisitsMin}.`,
       repId: rep.id,
       impact,
@@ -108,7 +108,9 @@ export function detectFreezerNoSales(d: Dataset, c: EngineConfig = DEFAULT_CONFI
     if (sales > c.freezerNoSalesMax) return [];
     const o = getOutlet(d, f.outletId);
     const prev = outletSales(d, o.id, d.previousPeriod);
-    const impact = Math.round(Math.max(prev, avgSalesWithFreezer(d, o.type, p)));
+    // money at risk = the outlet's own average monthly sales over the 3 previous periods
+    const hist = d.periods.slice(0, d.periods.indexOf(p)).slice(-3).map((x) => outletSales(d, o.id, x));
+    const impact = Math.round(hist.length ? hist.reduce((a, b) => a + b, 0) / hist.length : prev);
     return [{
       id: `freezer_no_sales-${o.id}-${p}`,
       type: "freezer_no_sales",
@@ -152,15 +154,15 @@ export function detectGpsMismatch(d: Dataset, c: EngineConfig = DEFAULT_CONFIG):
   const p = d.currentPeriod;
   return d.reps.flatMap((rep) => {
     const bad = repVisits(d, rep.id, p).filter((v) => v.status === "done" && (v.distanceM ?? 0) > c.gpsMaxDistanceM);
-    if (bad.length < c.gpsMismatchMin) return [];
+    if (bad.length === 0 || bad.length < c.gpsMismatchMin) return [];
     const maxKm = Math.max(...bad.map((v) => v.distanceM ?? 0)) / 1000;
     return [{
       id: `gps_mismatch-${rep.id}-${p}`,
       type: "gps_mismatch",
       severity: "medium",
       period: p,
-      title: `${rep.name}: ${bad.length} визита отмечены вне точки`,
-      description: `GPS-отметка дальше ${c.gpsMaxDistanceM} м от точки (до ${maxKm.toFixed(1)} км). Визиты могли не состояться.`,
+      title: `${rep.name}: ${plural(bad.length, ["визит отмечен", "визита отмечены", "визитов отмечены"])} вне точки`,
+      description: `GPS-отметка дальше ${c.gpsMaxDistanceM} м от точки (до ${fmtKm(maxKm * 1000)}). Визиты могли не состояться.`,
       repId: rep.id,
       impact: Math.round(bad.length * avgOrderValue(d, rep.id, d.previousPeriod)),
       metrics: { suspicious: bad.length, maxDistanceM: Math.max(...bad.map((v) => v.distanceM ?? 0)), visitIds: bad.map((v) => v.id).join(",") },

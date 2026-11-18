@@ -34,7 +34,7 @@ smoke test, jury materials polish.
 - Engine (`src/lib/engine/`): 6 detectors (5 case situations + GPS), cause rules with evidence,
   recommended actions, notification routing/texts, thresholds in `config.ts`. 31 vitest tests.
 - Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
-  8 alerts found (3 critical / 3 high / 2 medium), 7 215 618 ₸/мес at risk.
+  8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
 - Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
   87 600 000 ₸/year, ROI 222,4%, payback 3,7 months.
 - Docs: `docs/DOCUMENTATION.md` (all 16 template sections), `docs/PITCH.md` (+ Q&A).

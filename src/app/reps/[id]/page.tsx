@@ -111,7 +111,7 @@ export default async function RepPage({ params }: { params: Promise<{ id: string
         <div className="px-5 py-4">
           <SalesBars
             current={cur}
-            data={d.periods.map((p) => ({ period: p, value: repSales(d, rep.id, p), plan: repPlan(d, rep.id, p) }))}
+            data={d.periods.filter((p) => p >= rep.hiredAt.slice(0, 7)).map((p) => ({ period: p, value: repSales(d, rep.id, p), plan: repPlan(d, rep.id, p) }))}
           />
         </div>
       </Panel>

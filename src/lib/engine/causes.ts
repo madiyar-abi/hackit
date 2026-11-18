@@ -16,7 +16,7 @@ import {
   repVisits,
   totalSales,
 } from "../selectors";
-import { fmtDate, fmtMoney, fmtPct } from "../format";
+import { fmtDate, fmtKm, fmtMoney, fmtPct, plural } from "../format";
 
 interface Explanation {
   causes: Cause[];
@@ -104,7 +104,7 @@ function explainSalesDrop(dev: Deviation, d: Dataset, c: EngineConfig): Explanat
     causes.push({
       title: "Снизилась частота визитов",
       evidence: [
-        `Выполнено ${doneNow} визитов против ${donePrev} в прошлом периоде (−${fmtPct((donePrev - doneNow) / donePrev)})`,
+        `Выполнено ${plural(doneNow, ["визит", "визита", "визитов"])} против ${donePrev} в прошлом периоде (−${fmtPct((donePrev - doneNow) / donePrev)})`,
         `Плановых визитов в маршруте: ${repVisits(d, dev.repId, p).length} против ${repVisits(d, dev.repId, pp).length}`,
       ],
       confidence: "высокая",
@@ -190,14 +190,16 @@ function explainNoFreezer(dev: Deviation, d: Dataset, c: EngineConfig): Explanat
         title: "Ларь не был установлен при подключении точки",
         evidence: [
           `Категория «${o.type}» по стандарту компании должна иметь ларь`,
-          `Продажи точки без ларя: ${fmtMoney(sales)} за ${periodLabel(p)}`,
+          `Продажи точки без ларя: ${fmtMoney(sales)} за ${periodLabel(p).toLowerCase()}`,
           `Ожидаемый прирост с ларём: +${fmtPct(c.freezerUpliftPct)} ≈ ${fmtMoney(dev.impact)}/мес`,
         ],
         confidence: "высокая",
       },
     ],
     actions: [
-      "Включить точку в план установки ларей с высоким приоритетом (высокий оборот)",
+      sales > Number(dev.metrics.expected)
+        ? "Включить точку в план установки ларей с высоким приоритетом (оборот выше среднего по категории)"
+        : "Включить точку в план установки ларей",
       "Переставить ларь из точки, где он стоит без продаж (см. алерты «ларь без продаж»)",
       "Заключить договор безвозмездного пользования ларём с условием выкладки только нашей продукции",
     ],
@@ -243,7 +245,7 @@ function explainFreezerNoSales(dev: Deviation, d: Dataset): Explanation {
   const missed = visits.filter((v) => v.status === "missed");
   if (missed.length) {
     causes.push({
-      title: "Торговый представитель не посещает точку",
+      title: missed.length / visits.length >= 0.5 ? "Торговый представитель не посещает точку" : "Есть пропущенные визиты в точку",
       evidence: [`Пропущено ${missed.length} из ${visits.length} плановых визитов в точку за период`],
       confidence: "средняя",
     });
@@ -340,15 +342,15 @@ function explainGps(dev: Deviation, d: Dataset): Explanation {
     causes.push({
       title: "Отметки о визитах сделаны из одного места — вероятна имитация визитов",
       evidence: [
-        `${vs.length} отметки в разных точках сделаны с одних координат (${[...coords][0]})`,
-        ...vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)} ${v.checkInTime}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
+        `${plural(vs.length, ["отметка", "отметки", "отметок"])} в разных точках сделаны с одних координат (${[...coords][0]})`,
+        ...vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)} ${v.checkInTime}: ${fmtKm(v.distanceM!)} от точки`),
       ],
       confidence: "высокая",
     });
   } else {
     causes.push({
       title: "Отметка сделана не в точке",
-      evidence: vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)}: ${(v.distanceM! / 1000).toFixed(1)} км от точки`),
+      evidence: vs.map((v) => `${getOutlet(d, v.outletId).name}, ${fmtDate(v.date)}: ${fmtKm(v.distanceM!)} от точки`),
       confidence: "средняя",
     });
   }
