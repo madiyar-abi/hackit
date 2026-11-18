@@ -167,3 +167,15 @@
 - T27: DEMO.md step 7а (/mobile), alert-handling step already in step 3. Docs: /mobile in prototype list,
   SFA table row «нет мобильного приложения» → «есть только макет экрана», README routes + smoke, test
   count 34 → 43 everywhere. Next: T28 final checks + redeploy + DONE.
+
+## 2026-11-19 04:50 lead
+- Resumed after usage limit (paused 01:50–04:47). Worker branches had no new commits.
+- T28: self-review of phase-2 code (Handled store, risk, finance panels) — no defects found (the code-review
+  skill could not run: usage limit). tsc, eslint, 43 tests, finance verify, smoke (incl. /mobile) pass.
+  vercel deploy --prod → https://puls-prodazh-nine.vercel.app; Playwright on prod: /mobile, /finance
+  breakeven + 81 600 000, handled alert survives reload, KPI 1 673 665 ₸ as in DEMO step 3.
+- Screenshots retaken from production (old ones showed 7 002 665 ₸), added 08-prilozhenie-tp.png.
+- Phase-2 acceptance re-checked line by line: finance sheets + verify ✓; numbers /finance = docs =
+  summary.json ✓; risk KPI no double counting, write-offs at cost ✓; SFA comparison + 2 answers ✓;
+  handled works on deploy after reload, tests green ✓; npm test + smoke green, prod shows new version ✓.
+  Creating night/DONE.

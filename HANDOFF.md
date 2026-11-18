@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 01:45 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 05:00 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -24,9 +24,10 @@ per Hack.IT template, presentation, financial model (.xlsx), video of the produc
 - [ ] Sent to Telegram @hackit_administration before 20.11 17:00
 
 ## Status
-**Phase 2 in progress** (owner added it at 01:35, `night/SPEC.md` «Фаза 2», tasks T21–T28 in
-`night/TASKS.md`). Phase 1 is done and deployed; the app keeps working after every merge.
-The prod deploy still shows phase 1 until T28 redeploys.
+**Night run finished (phase 1 + phase 2) — every acceptance criterion in `night/SPEC.md` verified,
+`night/DONE` created.** Production https://puls-prodazh-nine.vercel.app shows the phase-2 version
+(checked 05:00: `/mobile`, `/finance` breakeven, «Отметить обработанным» survives reload).
+What's left is for humans (video, slides, template, submission) — see "Left to do".
 
 ## Done
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
@@ -46,14 +47,21 @@ The prod deploy still shows phase 1 until T28 redeploys.
   + jury Q&A), `docs/DEMO.md` (video script, ~3 min). `scripts/smoke.sh` — build + route checks.
 - Deployed to Vercel (project `puls-prodazh`). Fresh clone → `npm install && npm run build && npm test` OK.
 
-## In progress (phase 2)
-- Done on the night branch: T22 «Продажи под угрозой» without double counting (3 646 665 ₸/мес lost
-  sales + 2 894 000 ₸ plan gap shown separately), T23 «Отметить обработанным» (localStorage),
-  T25 comparison with the SFA class + jury answers in DOCUMENTATION/PITCH.
-- gemini: T24 `/mobile` rep-app prototype.
-- lead next: T27 DEMO (/mobile step), T28 redeploy + DONE.
-- T21 (codex) merged; T26 done: `/finance` shows revenue basis + breakeven, every number in docs
-  synced with `finance/summary.json`.
+## Phase 2 (done 2026-11-19)
+- Finance realism (codex): sheet «Обоснование выручки» (25 ТП × 100 точек × 200 000 ₸ × 12 = 6 млрд ₸,
+  labelled as team assumptions), sheet «Безубыточность» (1,18% sales uplift pays back within 12 months
+  from start; 4,18% with no freezer/write-off effect; without freezers payback 6,0 мес. → month 12),
+  write-offs valued at cost. Base: 81 600 000 ₸/year, ROI 200,3%, payback 4,0 мес., NPV 75 242 934 ₸.
+- «Продажи под угрозой» without double counting (`src/lib/engine/risk.ts`): 3 646 665 ₸/мес lost sales
+  + 2 894 000 ₸ plan gap shown separately.
+- «Отметить обработанным» / «Вернуть» on every alert card (localStorage), handled alerts in a separate
+  dimmed block, dashboard counters/KPI count open alerts only.
+- `/mobile` rep-app screen prototype (gemini); `/finance` panels «Откуда 6 млрд ₸» and «Безубыточность».
+- Docs: SFA-class comparison + jury answers («чем вы лучше готовых систем?», «откуда 6 млрд?»),
+  DEMO steps for alert handling and `/mobile`, all numbers synced, screenshots retaken from production.
+
+## In progress
+- Nothing.
 
 ## Left to do (humans, before 20.11 17:00)
 1. Make the GitHub repo public (Settings → General → Danger zone → Change visibility).
