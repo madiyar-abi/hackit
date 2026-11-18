@@ -25,6 +25,17 @@
   first-year ROI 222.4%, payback 3.72 months.
 - Next: lead merges the worker branch so T12 can use finance/summary.json.
 
+## 2026-11-19 00:31 gemini
+- T11 done: docs/DOCUMENTATION.md created with all 16 Hack.IT template sections in correct order.
+  Filled: Название («Пульс продаж»), Направление и кейс (verbatim case text from SPEC.md),
+  Команда (placeholder names [Участник 1..4] with role descriptions),
+  Риски и ограничения (10 realistic risks with mitigations: staff resistance, GPS accuracy,
+  internet coverage, 1C integration, budget overrun, scaling, cloud vendor lock-in,
+  false alerts, personal data privacy, tight timeline),
+  Источники (3 case PDFs in docs/case/).
+  Remaining sections marked as lead-owned placeholders.
+- Next: T12 (finance page) — waiting for finance/summary.json from codex (T10).
+
 ## 2026-11-19 00:34 lead
 - T2–T5 done: src/lib/types.ts, src/lib/data/generate.ts (seeded, 12 reps / 120 outlets / 4 months,
   SCENARIO map plants the 5 case situations + GPS bonus), src/lib/engine/{config,detect,causes,notify,index}.ts.
