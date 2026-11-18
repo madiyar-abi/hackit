@@ -13,3 +13,14 @@
 - T1 done: Next.js 15.5 (App Router, TS, Tailwind 4) + vitest 3 scaffolded at repo root.
   Removed next/font/google (needs internet at build) → system font stack. build + test pass.
 - Assumption: package name `puls-prodazh`; .gitignore kept ours + Next/Vercel entries + finance/.venv/.
+
+## 2026-11-19 00:31 gemini
+- T11 done: docs/DOCUMENTATION.md created with all 16 Hack.IT template sections in correct order.
+  Filled: Название («Пульс продаж»), Направление и кейс (verbatim case text from SPEC.md),
+  Команда (placeholder names [Участник 1..4] with role descriptions),
+  Риски и ограничения (10 realistic risks with mitigations: staff resistance, GPS accuracy,
+  internet coverage, 1C integration, budget overrun, scaling, cloud vendor lock-in,
+  false alerts, personal data privacy, tight timeline),
+  Источники (3 case PDFs in docs/case/).
+  Remaining sections marked as lead-owned placeholders.
+- Next: T12 (finance page) — waiting for finance/summary.json from codex (T10).
