@@ -66,3 +66,19 @@
   T19 (gemini). README + HANDOFF updated.
 - Assumption: Onest/Unbounded fonts bundled via @fontsource (offline build).
 - Next: T15 DEMO.md, merge T12/T18/T19, final pass T17.
+
+## 2026-11-19 00:47 gemini
+- T12 done: created /finance server component page and components (BudgetTable, ScenariosTable, AssumptionsList, types, format).
+  Displays implementation budget (items × 6 months + totals, CAPEX/OPEX, limit check ≤ 30M ₸, remaining limit),
+  scenarios table (pessimistic, base, optimistic with revenue uplift, gross profit, loss reduction, OPEX, net effect, ROI, payback),
+  and key model assumptions. All amounts formatted as '12 345 678 ₸'. Added 'Финмодель' link to Nav.tsx.
+  Verified with npm run build (141 static pages, /finance generated) and vitest.
+- Next: T19 (scripts/smoke.sh).
+
+## 2026-11-19 00:49 gemini
+- T19 done: created scripts/smoke.sh (executable, macOS Bash 3.2 compatible).
+  Runs `npm run build`, starts Next.js server on port 3100 in background, polls until ready,
+  curls /, /alerts, /alerts?type=sales_drop, /reps, /reps/r05, /outlets/o023, /notifications, /finance.
+  Asserts HTTP 200, checks «Ситуации из кейса» on /, and «Тимур Жумабеков» on /alerts?type=sales_drop.
+  Traps EXIT/INT/TERM to cleanly stop the server. Verified by executing `bash scripts/smoke.sh` (exit 0).
+- All gemini tasks (T11, T12, T19) complete.
