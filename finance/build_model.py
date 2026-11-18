@@ -1,5 +1,6 @@
 """Создаёт финансовую модель Excel и сводку для веб-приложения."""
 import json
+from itertools import accumulate
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -10,6 +11,10 @@ DIRECTORY = Path(__file__).resolve().parent
 MONEY = '# ##0" ₸"'
 PERCENT = "0.0%"
 DECIMAL = "0.0"
+DISCOUNT_RATE_PCT = 16
+CASHFLOW_MONTHS = 24
+UPLIFT_RATES = (1, 2, 3, 4, 5)
+REACTIVATION_RATES = (30, 50, 70)
 SCENARIOS = (
     ("pessimistic", "Пессимистичный"),
     ("base", "Базовый"),
@@ -67,6 +72,74 @@ def make_sheet(book, name, headers, widths):
     return sheet
 
 
+def add_cashflow_sheet(book):
+    sheet = make_sheet(
+        book, "Денежный поток",
+        ["Месяц", "Чистый поток", "Накопленный поток", "Дисконтированный поток", "Месяц окупаемости"],
+        [12, 23, 25, 31, 24],
+    )
+    sheet["G2"] = "Годовая ставка, %"
+    sheet["H2"] = "='Допущения'!B15"
+    sheet["G3"] = "Месячная ставка"
+    sheet["H3"] = "=(1+H2/100)^(1/12)-1"
+    sheet["H3"].number_format = "0.00%"
+    sheet["G4"] = "NPV за 24 месяца"
+    sheet["H4"] = f"=SUM(D2:D{CASHFLOW_MONTHS + 1})"
+    sheet["H4"].number_format = MONEY
+    sheet["G5"] = "Месяц окупаемости"
+    sheet["H5"] = f'=IF(E{CASHFLOW_MONTHS + 1}=0,"За горизонтом",E{CASHFLOW_MONTHS + 1})'
+    sheet.column_dimensions["G"].width = 27
+    sheet.column_dimensions["H"].width = 23
+    for month in range(1, CASHFLOW_MONTHS + 1):
+        row = month + 1
+        net = (
+            f"=-'Бюджет'!{get_column_letter(month + 1)}13"
+            if month <= 6 else "='Сценарии'!$C$6/12"
+        )
+        previous_payback = f"E{row - 1}" if month > 1 else "0"
+        sheet[f"A{row}"] = month
+        sheet[f"B{row}"] = net
+        sheet[f"C{row}"] = f"=SUM(B$2:B{row})"
+        sheet[f"D{row}"] = f"=B{row}/(1+$H$3)^A{row}"
+        sheet[f"E{row}"] = f"=IF({previous_payback}>0,{previous_payback},IF(C{row}>=0,A{row},0))"
+        sheet[f"E{row}"].number_format = '0;0;""'
+        for col in "BCD":
+            sheet[f"{col}{row}"].number_format = MONEY
+
+
+def add_sensitivity_sheet(book):
+    sheet = make_sheet(
+        book, "Чувствительность",
+        ["Прирост продаж, % / Возврат ларей, %", *REACTIVATION_RATES],
+        [48, 22, 22, 22],
+    )
+    sheet["F2"] = "Чистый годовой эффект, ₸ (строки 2–6)"
+    sheet["F9"] = "Окупаемость с начала эффекта, мес. (строки 9–13)"
+    sheet.column_dimensions["F"].width = 57
+    sheet["A8"] = "=A1"
+    for col in "BCD":
+        sheet[f"{col}8"] = f"={col}1"
+    for cell in sheet[8]:
+        if cell.column <= 4:
+            cell.fill = PatternFill("solid", fgColor="173D50")
+            cell.font = Font(bold=True, color="FFFFFF")
+
+    common = "'Допущения'!$B$"
+    for row, uplift in enumerate(UPLIFT_RATES, start=2):
+        sheet[f"A{row}"] = uplift
+        sheet[f"A{row + 7}"] = f"=A{row}"
+        for col in "BCD":
+            sheet[f"{col}{row}"] = (
+                f"=({common}2*$A{row}/100+{common}5*{common}6/100*"
+                f"{col}$1/100*{common}8*12)*{common}3/100+'Эффект'!$C$6-'Эффект'!$C$7"
+            )
+            sheet[f"{col}{row}"].number_format = MONEY
+            sheet[f"{col}{row + 7}"] = (
+                f'=IF({col}{row}>0,\'Бюджет\'!$H$13/({col}{row}/12),"Не окупается")'
+            )
+            sheet[f"{col}{row + 7}"].number_format = DECIMAL
+
+
 def write_workbook():
     book = Workbook()
     book.remove(book.active)
@@ -82,6 +155,11 @@ def write_workbook():
             cell.font = Font(color="175DAD")
             if unit.startswith("₸"):
                 cell.number_format = MONEY
+    inputs.append([
+        "Ставка дисконтирования, % годовых", DISCOUNT_RATE_PCT, None, None, None, "%",
+        "Эффективная годовая ставка для NPV",
+    ])
+    inputs["B15"].font = Font(color="175DAD")
     budget = make_sheet(
         book, "Бюджет", ["Статья", *(f"Месяц {month}" for month in range(1, 7)), "Итого", "Тип"],
         [72, 16, 16, 16, 16, 16, 16, 18, 12],
@@ -162,6 +240,8 @@ def write_workbook():
                 cell.fill = PatternFill("solid", fgColor="DFEFEB")
                 cell.font = Font(bold=True)
                 cell.alignment = Alignment(vertical="center")
+    add_cashflow_sheet(book)
+    add_sensitivity_sheet(book)
     book.active = overview
     book.save(DIRECTORY / "financial-model.xlsx")
 
@@ -213,7 +293,23 @@ def write_summary():
             "roiYear1": (net - investment) / investment,
             "paybackMonths": investment / (net / 12) if net > 0 else None,
         })
-    summary = {"currency": "₸", "budget": budget, "scenarios": scenarios, "assumptions": assumptions}
+    months = list(range(1, CASHFLOW_MONTHS + 1))
+    monthly_benefit = scenarios[1]["netAnnualEffect"] / 12
+    net = [-amount for amount in by_month] + [monthly_benefit] * (CASHFLOW_MONTHS - len(by_month))
+    cumulative = list(accumulate(net))
+    monthly_discount = (1 + DISCOUNT_RATE_PCT / 100) ** (1 / 12) - 1
+    cashflow = {
+        "discountRatePct": DISCOUNT_RATE_PCT,
+        "months": months,
+        "net": net,
+        "cumulative": cumulative,
+        "paybackMonth": next((month for month, amount in zip(months, cumulative) if amount >= 0), None),
+        "npv": round(sum(amount / (1 + monthly_discount) ** month for month, amount in zip(months, net))),
+    }
+    summary = {
+        "currency": "₸", "budget": budget, "scenarios": scenarios, "assumptions": assumptions,
+        "cashflow": cashflow,
+    }
     (DIRECTORY / "summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
     )

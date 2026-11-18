@@ -46,3 +46,13 @@
   Severity routing: critical → РОП (Telegram+e-mail) + супервайзер; high → супервайзер Telegram;
   medium → супервайзер e-mail. Company/people in demo data are fictional.
 - Next: UI screens T6–T9 (subagents), merge workers.
+
+## 2026-11-19 00:43 codex
+- T18 complete. Added 24-month cash flow and two sensitivity grids covering 15 combinations.
+  The only JSON addition is cashflow. Existing fields and values compare equal to T10.
+- Assumptions: the 16% annual discount rate is effective and flows occur at each month end.
+  Sensitivity payback is measured from the start of benefits. Cash-flow payback is the first
+  whole project month with nonnegative cumulative flow. Base payback is month 10 and
+  24-month NPV is 82 688 162 ₸, rounded to whole tenge in JSON.
+- Passed `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py`.
+  Next: lead merges the worker branch.
