@@ -24,3 +24,14 @@
   Источники (3 case PDFs in docs/case/).
   Remaining sections marked as lead-owned placeholders.
 - Next: T12 (finance page) — waiting for finance/summary.json from codex (T10).
+
+## 2026-11-19 00:34 lead
+- T2–T5 done: src/lib/types.ts, src/lib/data/generate.ts (seeded, 12 reps / 120 outlets / 4 months,
+  SCENARIO map plants the 5 case situations + GPS bonus), src/lib/engine/{config,detect,causes,notify,index}.ts.
+  31 vitest tests green (data situations, each detector, config thresholds, causes, notification text).
+- Engine output on demo data: 8 alerts (3 critical, 3 high, 2 medium), at risk ≈ 7.2 млн ₸/мес.
+- Assumptions: case 3 covered twice (freezer never installed / registered but missing on audit);
+  case 4 twice (competitor product in freezer / outlet closed); 6th bonus type "GPS-отметка вне точки".
+  Severity routing: critical → РОП (Telegram+e-mail) + супервайзер; high → супервайзер Telegram;
+  medium → супервайзер e-mail. Company/people in demo data are fictional.
+- Next: UI screens T6–T9 (subagents), merge workers.
