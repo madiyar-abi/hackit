@@ -91,3 +91,16 @@
 - Passed TypeScript, production build (/settings is static), and all 31 tests. Chrome smoke
   checked keyboard slider updates, impact, reset, and no overflow in mobile orientations.
 - Next: lead merges T20 and adds the navigation link.
+
+## 2026-11-19 00:57 lead
+- Applied code review (14 findings): plural forms, NBSP in money, km with comma, guards for zero
+  thresholds, freezer-without-sales impact = outlet's own 3-month average (risk now 7 002 665 ₸/мес),
+  latest notifications sorted by time, rep chart starts at hire month, payback wording in docs
+  («3,7 мес. после запуска, 10-й месяц от старта»). Not changed (documented as Q&A soft spots):
+  plan-gap impact of the new rep, loss reduction computed on revenue.
+- Merged gemini T12 (/finance) + T19 (smoke.sh) and codex T18 (finance v2) + T20 (/settings); added
+  «Пороги» nav link. 34 tests, smoke test, finance verify all pass. Redeployed to Vercel.
+- Screenshots docs/screenshots/ (from production) embedded in DOCUMENTATION.md.
+- Tried to store cached values in the xlsx via Excel AppleScript — Excel hung (likely a first-run /
+  automation permission dialog); left formulas-only file (fullCalcOnLoad=1). Humans: open & save.
+- T17: SPEC acceptance list re-checked line by line; fresh clone install/build/test OK. Creating night/DONE.

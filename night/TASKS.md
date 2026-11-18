@@ -29,7 +29,7 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 - [x] T14 (lead) Fill `docs/DOCUMENTATION.md` with facts from code and finance model — accept: all 16 sections filled, numbers equal finance/summary.json
 - [x] T15 (lead) `docs/DEMO.md` — demo-video script 2–3 min: numbered steps, exact clicks/URLs/inputs, what to say, which result to show — accept: every step reproducible on the deployed app
 - [x] T16 (lead) `docs/PITCH.md` — 5-min slide outline: problem → solution → live demo → how it works (architecture, stack) → results/metrics → what's next → team; ≤4 bullets per slide, facts only from code/finmodel; + prepared answers to likely jury questions (budget, rollout, risks) — accept: numbers match finance/summary.json
-- [ ] T17 (lead) Final check vs SPEC.md acceptance list, README/HANDOFF "How to run", create night/DONE
+- [x] T17 (lead) Final check vs SPEC.md acceptance list, README/HANDOFF "How to run", create night/DONE
 
 ---
 

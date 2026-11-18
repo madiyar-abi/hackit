@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 00:45 · by: Claude (lead, night run) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 01:00 · by: Claude (lead, night run) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -18,15 +18,15 @@ per Hack.IT template, presentation, financial model (.xlsx), video of the produc
       (or otherwise give access) before submitting
 - [ ] Demo video — record by the script in `docs/DEMO.md`
 - [ ] Presentation — make slides from `docs/PITCH.md` (8 slides, 5 min) + rehearse Q&A
-- [ ] Documentation — `docs/DOCUMENTATION.md` → put into the Hack.IT template, fill team
-      names (`[Название команды]`, `[Участник N]`), add screenshots
+- [ ] Documentation — `docs/DOCUMENTATION.md` (16 sections, screenshots in `docs/screenshots/`)
+      → put into the Hack.IT template, fill team names (`[Название команды]`, `[Участник N]`)
 - [x] Financial model — `finance/financial-model.xlsx` (open in Excel once and save so cached values appear)
 - [ ] Sent to Telegram @hackit_administration before 20.11 17:00
 
 ## Status
-Product «Пульс продаж» works end to end on demo data and is deployed. Night run
-(lead + gemini + codex) in progress until 07:00: finance page `/finance`, finance model v2,
-smoke test, jury materials polish.
+**Night run finished — every acceptance criterion in `night/SPEC.md` verified, `night/DONE` created.**
+Product «Пульс продаж» works end to end on demo data and is deployed. What's left is for humans
+(video, slides, template, submission) — see "Left to do".
 
 ## Done
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
@@ -37,19 +37,25 @@ smoke test, jury materials polish.
   8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
 - Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
   87 600 000 ₸/year, ROI 222,4%, payback 3,7 months.
-- Docs: `docs/DOCUMENTATION.md` (all 16 template sections), `docs/PITCH.md` (+ Q&A).
-- Deployed to Vercel (project `puls-prodazh`).
+- Pages `/finance` (budget, scenarios, assumptions from `finance/summary.json`, by gemini) and
+  `/settings` (live threshold playground, by codex). Finance v2: cash flow 24 months (payback month 10
+  from project start, NPV 82 688 162 ₸ at 16%) and sensitivity sheet (codex).
+- Docs: `docs/DOCUMENTATION.md` (all 16 template sections + screenshots), `docs/PITCH.md` (8 slides
+  + jury Q&A), `docs/DEMO.md` (video script, ~3 min). `scripts/smoke.sh` — build + route checks.
+- Deployed to Vercel (project `puls-prodazh`). Fresh clone → `npm install && npm run build && npm test` OK.
 
 ## In progress
-- See `night/TASKS.md`: T12 `/finance` page (gemini), T18 finance v2 (codex), T19 smoke test
-  (gemini), T15 `docs/DEMO.md`, T17 final check (lead).
+- Nothing.
 
 ## Left to do (humans, before 20.11 17:00)
 1. Make the GitHub repo public (Settings → General → Danger zone → Change visibility).
 2. Record the 2–3 min video by `docs/DEMO.md` (screen recording of the deployed app).
 3. Slides from `docs/PITCH.md`; documentation into the Hack.IT template; fill team names.
-4. Open `finance/financial-model.xlsx` in Excel, check sheets, Save (stores calculated values).
-5. Send everything to @hackit_administration.
+4. Open `finance/financial-model.xlsx` in Excel, check sheets, Save — the file is generated with
+   formulas only (Excel recalculates on open); saving stores the values so previews show numbers.
+5. Optional: rehearse the Q&A in `docs/PITCH.md`; known soft spot — «Продажи под угрозой» sums
+   the plan gap of the new rep (2,9 млн) with other alerts; loss reduction is computed on revenue.
+6. Send everything to @hackit_administration.
 
 ## Decisions & assumptions
 - Work goes through branches + PRs into `main`; nobody pushes to `main` directly.
@@ -66,6 +72,7 @@ smoke test, jury materials polish.
 npm install
 npm run dev      # http://localhost:3000
 npm test         # 34 unit tests
+bash scripts/smoke.sh  # build + start + check all routes
 npm run build    # production build
 vercel deploy --prod   # redeploy (Vercel CLI logged in as the owner)
 ```
