@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/notifications", label: "Уведомления" },
   { href: "/finance", label: "Финмодель" },
   { href: "/settings", label: "Пороги" },
+  { href: "/mobile", label: "Приложение ТП" },
 ];
 
 export function Nav() {
