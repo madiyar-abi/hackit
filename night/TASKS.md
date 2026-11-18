@@ -33,7 +33,7 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 
 ## Phase 2 (night/SPEC.md «Фаза 2»; started 2026-11-19 01:30)
 Order = priority. Phase 1 must keep working (tests, smoke, deploy, README).
-- [ ] T21 (codex) Finance model realism — files: finance/build_model.py, finance/verify.py, finance/README.md, finance/financial-model.xlsx, finance/summary.json — accept: `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py` exit 0 (see "Notes for T21" below)
+- [x] T21 (codex) Finance model realism — files: finance/build_model.py, finance/verify.py, finance/README.md, finance/financial-model.xlsx, finance/summary.json — accept: `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py` exit 0 (see "Notes for T21" below)
 - [ ] T22 (lead) KPI «Продажи под угрозой» without double counting: pure function in engine (+test), dashboard/notify use it, note explains what is summed — files: src/lib/engine/*, src/app/page.tsx — accept: `npm test` green; per-rep overlapping losses counted once
 - [ ] T23 (lead) «Отметить обработанным» / «Вернуть» on alerts (localStorage in try/catch, pure fn + test), handled alerts visually separated, dashboard counters count them on the client — files: src/lib/handled.ts(+test), src/components/*, src/app/page.tsx, src/app/alerts/* — accept: `npm test` green, build passes, state survives reload
 - [ ] T24 (gemini) Mobile rep app prototype `/mobile` (see "Notes for T24") — files: src/app/mobile/*, one line in src/components/Nav.tsx, one check line in scripts/smoke.sh — accept: `npx tsc --noEmit && npx eslint src && npm run build` pass, `/mobile` in build output, `bash scripts/smoke.sh` exit 0

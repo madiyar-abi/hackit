@@ -18,8 +18,12 @@ def verify():
     summary = json.loads((DIRECTORY / "summary.json").read_text(encoding="utf-8"))
     with WORKBOOK.open("rb") as source:
         workbook = load_workbook(source, read_only=True)
-        for sheet in ("Бюджет", "Эффект", "Сценарии", "Денежный поток", "Чувствительность"):
+        for sheet in (
+            "Бюджет", "Эффект", "Сценарии", "Денежный поток", "Чувствительность",
+            "Обоснование выручки", "Безубыточность",
+        ):
             assert any(cell.data_type == "f" for row in workbook[sheet].rows for cell in row), sheet
+        assert workbook["Допущения"]["B2"].data_type == "f"
         workbook.close()
 
     model = formulas.ExcelModel().loads(str(WORKBOOK)).finish()
@@ -77,6 +81,10 @@ def verify():
     )
     annual_freezer_sales = base_inputs["Продажи на один активный ларь"] * 12
     base = summary["scenarios"][1]
+    for column, reduction_pp in zip(
+        "BCD", summary["assumptions"][8]["values"], strict=True,
+    ):
+        compare("Эффект", f"{column}6", revenue * reduction_pp / 100 * (1 - margin))
     sensitivity = "Чувствительность"
     for col, reactivation in zip("BCD", (30, 50, 70), strict=True):
         compare(sensitivity, f"{col}1", reactivation, 0)
@@ -89,6 +97,29 @@ def verify():
             net = uplift_revenue * margin + base["lossReduction"] - base["annualOpex"]
             compare(sensitivity, f"{col}{row}", net)
             compare(sensitivity, f"{col}{row + 7}", 12 * budget["total"] / net, 1e-9)
+
+    revenue_basis = summary["revenueBasis"]
+    for row, key in enumerate((
+        "reps", "outletsPerRep", "outlets", "salesPerOutletMonth", "monthlyRevenue",
+        "annualRevenue", "revenuePerRepMonth", "freezerOutletShare",
+    ), start=2):
+        tolerance = 1e-9 if row == 9 else 1 if row >= 5 else 0
+        compare("Обоснование выручки", f"B{row}", revenue_basis[key], tolerance)
+    compare("Допущения", "B2", revenue_basis["annualRevenue"])
+    breakeven = summary["breakeven"]
+    for row, key, tolerance in (
+        (4, "requiredNetAnnualEffect12m", 1),
+        (8, "minUpliftPct12m", 1e-9),
+        (9, "minUpliftPctNoOtherEffects", 1e-9),
+        (10, "netAnnualEffectNoFreezers", 1),
+        (11, "paybackMonthsNoFreezers", 1e-9),
+        (12, "paybackMonthFromStartNoFreezers", 0),
+    ):
+        expected = breakeven[key]
+        if expected is None:
+            assert cell("Безубыточность", f"B{row}") == "Не окупается"
+        else:
+            compare("Безубыточность", f"B{row}", expected, tolerance)
     print("Формулы Excel совпадают со сводкой. Бюджет и срок в пределах ограничений.")
 
 
