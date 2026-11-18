@@ -1,0 +1,41 @@
+# --- Personal editor / IDE settings (each teammate keeps their own) ---
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Secrets / local env ---
+.env
+.env.*
+!.env.example
+
+# --- Claude Code: personal, machine-specific files ---
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+
+# --- Logs / temp ---
+*.log
+tmp/
+.cache/
+
+# --- Common build output & dependencies ---
+node_modules/
+dist/
+build/
+out/
+coverage/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Night-run watchdog logs (local only) ---
+.night-logs/
