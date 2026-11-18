@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/reps", label: "Сотрудники" },
   { href: "/notifications", label: "Уведомления" },
   { href: "/finance", label: "Финмодель" },
+  { href: "/settings", label: "Пороги" },
 ];
 
 export function Nav() {
