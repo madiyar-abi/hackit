@@ -66,3 +66,12 @@
   T19 (gemini). README + HANDOFF updated.
 - Assumption: Onest/Unbounded fonts bundled via @fontsource (offline build).
 - Next: T15 DEMO.md, merge T12/T18/T19, final pass T17.
+
+## 2026-11-19 00:51 codex
+- T20 complete. /settings runs the engine in the browser against the deterministic demo
+  dataset. It shows live alert totals, counts per type, summed impact, and severity badges.
+- Assumptions: settings are local to the page. Native sliders cover 1–50 visits or off-site
+  check-ins, 0–100 percent, and 0–3000 metres in 10-metre steps.
+- Passed TypeScript, production build (/settings is static), and all 31 tests. Chrome smoke
+  checked keyboard slider updates, impact, reset, and no overflow in mobile orientations.
+- Next: lead merges T20 and adds the navigation link.
