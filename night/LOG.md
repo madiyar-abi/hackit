@@ -138,3 +138,11 @@
 - Passed `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py`.
   Summary retains the original keys and adds revenueBasis and breakeven. Next: lead merges T21
   and refreshes jury-facing numbers from summary.json.
+
+## 2026-11-19 01:34 lead
+- Merged codex T21 (reviewed build_model.py diff; verify.py exit 0; numbers as specified: base net
+  81 600 000 ₸, ROI 200,3%, payback 4,0 мес., NPV 75 242 934 ₸, breakeven 1,18% / 4,18%).
+- T26: /finance gets panels «Откуда 6 млрд ₸» and «Безубыточность» from summary.json (optional keys),
+  write-off row renamed «по себестоимости», removed the unsupported label «данные компании и
+  отраслевые бенчмарки» → «допущения команды». DOCUMENTATION/PITCH/DEMO/HANDOFF numbers synced;
+  grep for old numbers (87,6 / 222 / 3,7 / 7,7 / 82,7 / 7 002 665) is clean. Build OK, screenshot checked.

@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 01:35 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 01:45 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -36,10 +36,12 @@ The prod deploy still shows phase 1 until T28 redeploys.
 - Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
   8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
 - Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
-  87 600 000 ₸/year, ROI 222,4%, payback 3,7 months.
+  81 600 000 ₸/year, ROI 200,3%, payback 4,0 months after launch (phase 2: revenue built bottom-up
+  25 ТП × 100 точек × 200 000 ₸ × 12 = 6 млрд ₸; write-offs at cost; breakeven: 1,18% sales uplift
+  pays back within 12 months from start).
 - Pages `/finance` (budget, scenarios, assumptions from `finance/summary.json`, by gemini) and
   `/settings` (live threshold playground, by codex). Finance v2: cash flow 24 months (payback month 10
-  from project start, NPV 82 688 162 ₸ at 16%) and sensitivity sheet (codex).
+  from project start, NPV 75 242 934 ₸ at 16%) and sensitivity sheet (codex).
 - Docs: `docs/DOCUMENTATION.md` (all 16 template sections + screenshots), `docs/PITCH.md` (8 slides
   + jury Q&A), `docs/DEMO.md` (video script, ~3 min). `scripts/smoke.sh` — build + route checks.
 - Deployed to Vercel (project `puls-prodazh`). Fresh clone → `npm install && npm run build && npm test` OK.
@@ -48,10 +50,10 @@ The prod deploy still shows phase 1 until T28 redeploys.
 - Done on the night branch: T22 «Продажи под угрозой» without double counting (3 646 665 ₸/мес lost
   sales + 2 894 000 ₸ plan gap shown separately), T23 «Отметить обработанным» (localStorage),
   T25 comparison with the SFA class + jury answers in DOCUMENTATION/PITCH.
-- codex: T21 finance realism (revenue basis sheet, breakeven sheet, write-offs at cost).
 - gemini: T24 `/mobile` rep-app prototype.
-- lead next: T26 sync all numbers after T21, T27 DEMO, T28 redeploy + DONE.
-- Until T26: docs still quote the phase-1 numbers (7,0 млн at risk, 87,6 млн net effect).
+- lead next: T27 DEMO (/mobile step), T28 redeploy + DONE.
+- T21 (codex) merged; T26 done: `/finance` shows revenue basis + breakeven, every number in docs
+  synced with `finance/summary.json`.
 
 ## Left to do (humans, before 20.11 17:00)
 1. Make the GitHub repo public (Settings → General → Danger zone → Change visibility).
