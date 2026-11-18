@@ -13,7 +13,7 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 - [x] T5 (lead) Notifications: severity, feed, simulated Telegram/e-mail message text — files: src/lib/engine/notify.ts (+test) — accept: test checks message text for each type
 - [x] T6 (lead) Manager dashboard `/` (KPIs, alerts by severity, 5 case situations visible) — files: src/app/page.tsx, src/components/* — accept: build passes, page shows alerts of all 5 types
 - [x] T7 (lead) Alerts list `/alerts` with filters (type, severity, rep) — files: src/app/alerts/* — accept: build passes, filters work via query params
-- [ ] T8 (lead) Rep card `/reps/[id]` and outlet card `/outlets/[id]` — files: src/app/reps/*, src/app/outlets/* — accept: build passes, pages statically generated
+- [x] T8 (lead) Rep card `/reps/[id]` and outlet card `/outlets/[id]` — files: src/app/reps/*, src/app/outlets/* — accept: build passes, pages statically generated
 - [x] T9 (lead) Notifications feed `/notifications` with simulated send (Telegram / e-mail preview) — files: src/app/notifications/* — accept: build passes
 - [ ] T13 (lead) Deploy to Vercel; link in README.md and HANDOFF.md — accept: link opens dashboard
 
