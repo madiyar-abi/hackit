@@ -104,3 +104,12 @@
 - Tried to store cached values in the xlsx via Excel AppleScript — Excel hung (likely a first-run /
   automation permission dialog); left formulas-only file (fullCalcOnLoad=1). Humans: open & save.
 - T17: SPEC acceptance list re-checked line by line; fresh clone install/build/test OK. Creating night/DONE.
+
+## 2026-11-19 01:27 lead
+- Phase 2 spec arrived (night/SPEC.md «Фаза 2»). Wrote T21–T28 into night/TASKS.md.
+  codex: T21 finance realism (finance/* only). gemini: T24 /mobile prototype (src/app/mobile/*,
+  one Nav line, one smoke line). lead: T22 risk KPI, T23 handled alerts, T25 competitors, T26 numbers
+  sync, T27 DEMO, T28 final deploy + DONE.
+- Assumptions: revenue basis 25 ТП × 100 точек × 200 000 ₸/мес × 12 = 6 млрд ₸ (team estimate,
+  labelled as such); write-off reduction valued at cost = revenue × (1 − margin); breakeven = cumulative
+  cash ≥ 0 by month 12 from project start (6 months of effect).

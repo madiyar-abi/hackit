@@ -31,6 +31,49 @@ Stack: Next.js 15 (App Router, TypeScript, Tailwind), vitest; finance model — 
 - [x] T16 (lead) `docs/PITCH.md` — 5-min slide outline: problem → solution → live demo → how it works (architecture, stack) → results/metrics → what's next → team; ≤4 bullets per slide, facts only from code/finmodel; + prepared answers to likely jury questions (budget, rollout, risks) — accept: numbers match finance/summary.json
 - [x] T17 (lead) Final check vs SPEC.md acceptance list, README/HANDOFF "How to run", create night/DONE
 
+## Phase 2 (night/SPEC.md «Фаза 2»; started 2026-11-19 01:30)
+Order = priority. Phase 1 must keep working (tests, smoke, deploy, README).
+- [ ] T21 (codex) Finance model realism — files: finance/build_model.py, finance/verify.py, finance/README.md, finance/financial-model.xlsx, finance/summary.json — accept: `finance/.venv/bin/python finance/build_model.py && finance/.venv/bin/python finance/verify.py` exit 0 (see "Notes for T21" below)
+- [ ] T22 (lead) KPI «Продажи под угрозой» without double counting: pure function in engine (+test), dashboard/notify use it, note explains what is summed — files: src/lib/engine/*, src/app/page.tsx — accept: `npm test` green; per-rep overlapping losses counted once
+- [ ] T23 (lead) «Отметить обработанным» / «Вернуть» on alerts (localStorage in try/catch, pure fn + test), handled alerts visually separated, dashboard counters count them on the client — files: src/lib/handled.ts(+test), src/components/*, src/app/page.tsx, src/app/alerts/* — accept: `npm test` green, build passes, state survives reload
+- [ ] T24 (gemini) Mobile rep app prototype `/mobile` (see "Notes for T24") — files: src/app/mobile/*, one line in src/components/Nav.tsx, one check line in scripts/smoke.sh — accept: `npx tsc --noEmit && npx eslint src && npm run build` pass, `/mobile` in build output, `bash scripts/smoke.sh` exit 0
+- [ ] T25 (lead) Comparison with existing SFA/merchandising class + jury answers «чем вы лучше готовых систем?», «откуда 6 млрд выручки?» — files: docs/DOCUMENTATION.md, docs/PITCH.md — accept: sections present, only verifiable claims, no product names
+- [ ] T26 (lead) Merge T21: `/finance` shows revenue basis + breakeven from summary.json; all numbers in /finance, DOCUMENTATION.md, PITCH.md, README, HANDOFF match summary.json — files: src/app/finance/*, src/components/finance/*, docs/* — accept: build passes; grep of old numbers (87 600 000, 222,4, 3,7 мес) finds nothing stale
+- [ ] T27 (lead) docs/DEMO.md: alert-handling step (+ /mobile step if T24 done) — accept: steps reproducible on deploy
+- [ ] T28 (lead) Final phase 2: `npm test`, `bash scripts/smoke.sh`, `vercel deploy --prod` (project puls-prodazh), verify prod shows new version, README/HANDOFF/PITCH/DEMO current, phase 2 acceptance re-checked, `night/DONE` — accept: all SPEC phase-2 criteria checked
+
+## Notes for T21 (codex) — finance model realism
+Do NOT rename existing sheets/keys; Excel formulas must stay live; keep openpyxl only for building.
+1. New sheet `Обоснование выручки` (insert right after `Допущения`). Columns: A Показатель, B Значение, C Единица, D Комментарий (откуда взято). Rows (B = input in blue font unless formula):
+   - 2 Число торговых представителей = 25 — «Допущение команды: типичная полевая команда среднего молочного завода РК; уточняется данными заказчика»
+   - 3 Торговых точек на одного ТП = 100 — «Допущение: маршрут 20–25 точек в день, каждая точка — раз в неделю (5 рабочих дней)»
+   - 4 Активных торговых точек = `=B2*B3`
+   - 5 Средние продажи на точку в месяц, ₸ = 200 000 — «Допущение: средняя закупка молочной продукции точкой (киоск … супермаркет)»
+   - 6 Выручка канала ТП в месяц = `=B4*B5`
+   - 7 Выручка канала ТП в год = `=B6*12`
+   - 8 Выручка на одного ТП в месяц (проверка) = `=B6/B2`
+   - 9 Доля точек с ларём компании (проверка) = `='Допущения'!B5/B4` (percent format)
+   - 11 (text in A) «Все значения — допущения команды для среднего молочного завода РК, а не данные заказчика. На пилоте заменяются фактом из 1С.»
+   Then `Допущения`!B2 becomes the formula `='Обоснование выручки'!B7` (comment column: «Снизу вверх: лист „Обоснование выручки“»). Total must stay 6 000 000 000.
+2. Write-offs from cost, not revenue: `Эффект` row 6 «Снижение потерь за год (по себестоимости)» = revenue × reduction_pp/100 × (1 − margin/100). Same in `write_summary`. Comment on the Допущения row «Снижение списаний и возвратов»: «Списанная продукция оценивается по себестоимости = выручка × (1 − валовая маржа)».
+   Expected base: lossReduction 18 000 000, netAnnualEffect 81 600 000, payback ≈ 4.0 мес., ROI ≈ 200,3%.
+3. New sheet `Безубыточность` (base scenario, column B formulas, column C comment):
+   - 2 Инвестиции = `='Бюджет'!H13`
+   - 3 Месяцев эффекта до конца 12-го месяца от старта = `=12-'Допущения'!B14`
+   - 4 Требуемый чистый годовой эффект для окупаемости за 12 мес. = `=B2/B3*12`
+   - 5 Валовая прибыль от ларей (базовый) = `='Эффект'!C3*'Допущения'!B3/100`
+   - 6 Снижение потерь (базовый) = `='Эффект'!C6`
+   - 7 OPEX поддержки за год = `='Эффект'!C7`
+   - 8 Мин. прирост продаж для окупаемости за 12 мес., % (лари и списания — как в базовом) = `=(B4+B7-B5-B6)/('Допущения'!B2*'Допущения'!B3/100)*100` (≈ 1.18)
+   - 9 Мин. прирост продаж, % (без эффекта ларей и списаний) = `=(B4+B7)/('Допущения'!B2*'Допущения'!B3/100)*100` (≈ 4.18)
+   - 10 Чистый годовой эффект без ларей (базовый) = `='Эффект'!C2*'Допущения'!B3/100+B6-B7` (≈ 54 600 000)
+   - 11 Окупаемость без эффекта ларей, мес. после запуска = `=IF(B10>0,B2/(B10/12),"Не окупается")` (≈ 5.97)
+   - 12 Месяц окупаемости от старта без ларей = `=IF(B10>0,'Допущения'!B14+ROUNDUP(B11,0),"Не окупается")` (= 12)
+4. `summary.json`: keep all existing keys; add
+   `"revenueBasis": {"reps":25,"outletsPerRep":100,"outlets":2500,"salesPerOutletMonth":200000,"monthlyRevenue":500000000,"annualRevenue":6000000000,"revenuePerRepMonth":20000000,"freezerOutletShare":0.4}` and
+   `"breakeven": {"requiredNetAnnualEffect12m":…, "minUpliftPct12m":…, "minUpliftPctNoOtherEffects":…, "netAnnualEffectNoFreezers":…, "paybackMonthsNoFreezers":…, "paybackMonthFromStartNoFreezers":…}` (money rounded to whole ₸, pct/months as floats).
+5. `verify.py`: assert formula cells on the two new sheets, `Допущения`!B2 is a formula, and every new summary key equals the evaluated workbook (money ±1 ₸, floats ±1e-9); existing checks still pass. Update `finance/README.md` (sheets list, write-off logic).
+
 ---
 
 ## Notes for T10 (codex) — financial model
@@ -114,3 +157,14 @@ each scenario's net effect and payback equal `summary.json` (±1 ₸); (c) asser
 and months == 6. Add the line `finance/.venv/` to `.gitignore` (the only file outside
 finance/ you may touch). Expected ballpark (base): budget total ≈ 27.17 млн ₸, net annual
 effect ≈ 87.6 млн ₸, payback ≈ 3.7 мес.
+
+
+## Notes for T24 (gemini) — `/mobile` prototype
+- `src/app/mobile/page.tsx` (server component): `PageHeader` title «Мобильное приложение ТП», subtitle «Прототип экрана, данные демо». Picks rep `r01` (or the first rep that has ≥ 5 visits on one date in `dataset.currentPeriod`; take that date) and passes plain data (rep, that day's visits sorted by `plannedTime`, their outlets, freezers of those outlets) to a client component.
+- `src/app/mobile/MobileApp.tsx` ("use client"): centred phone frame (~390×780 px, rounded-[2.5rem], dark border, inner scroll). Inside, three tabs at the bottom: «Маршрут», «Визит», «Заказ».
+  - Маршрут: list of the day's outlets (time, name, address, status badge: выполнен / пропущен / предстоит). Tap → selects outlet and opens «Визит».
+  - Визит: outlet name; button «Отметиться» simulates GPS: use the visit's `gps` if present else outlet coords + small offset; compute distance with `distanceM` from `src/lib/geo.ts`; show «В точке: N м» green if ≤ `DEFAULT_CONFIG.gpsMaxDistanceM` (from `src/lib/engine/config.ts`), otherwise red «Слишком далеко от точки: N м — отметка уйдёт супервайзеру». Block «Ларь компании»: button «Сканировать QR ларя» → shows freezer id + model if the outlet has a freezer, else «Ларь не найден — будет создано отклонение». Button «Сделать фото» → shows a placeholder thumbnail «Фото ларя (демо)».
+  - Заказ: 5–6 hard-coded dairy SKUs (Молоко 3,2% 1 л, Кефир 2,5% 1 л, Сметана 20% 400 г, Творог 9% 200 г, Йогурт питьевой 270 г, Мороженое пломбир 80 г) with prices in ₸, +/− quantity buttons, total via `fmtMoney` (`src/lib/format.ts`), button «Отправить заказ» → confirmation text «Заказ отправлен (демо)».
+  - All state in React `useState`; no new dependencies; Russian UI; reuse Tailwind tokens from `src/app/globals.css` (ink, frost, milk, line, carton, ok, critical, muted).
+- Nav: add one line `{ href: "/mobile", label: "Приложение ТП" },` to LINKS in `src/components/Nav.tsx` (last item).
+- smoke: add `check_endpoint "/mobile" "Прототип экрана"` to `scripts/smoke.sh`.
