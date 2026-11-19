@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import type { Freezer, Outlet, Rep, Visit } from "@/lib/types";
 import { DEFAULT_CONFIG } from "@/lib/engine/config";
 import { distanceM } from "@/lib/geo";
-import { fmtDate, fmtMoney } from "@/lib/format";
+import { fmtDate, fmtMoney, plural } from "@/lib/format";
+import { bonusEstimate, BONUS_SCHEME, CITY_KMH, optimizeRoute, routeKm } from "@/lib/coach";
 
-type Tab = "route" | "visit" | "order";
+type Tab = "route" | "visit" | "order" | "plan";
 type VisitStatusState = "done" | "missed" | "upcoming";
 
 interface MobileAppProps {
@@ -15,6 +16,10 @@ interface MobileAppProps {
   visits: Visit[];
   outlets: Outlet[];
   freezers: Freezer[];
+  plan: number;
+  fact: number;
+  period: string;
+  hints: Record<string, string[]>;
 }
 
 interface OrderItem {
@@ -33,8 +38,9 @@ const DAIRY_SKUS: OrderItem[] = [
   { id: "sku-6", name: "Мороженое пломбир 80 г", category: "Мороженое", price: 320 },
 ];
 
-export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppProps) {
+export function MobileApp({ rep, date, visits, outlets, freezers, plan, fact, period, hints }: MobileAppProps) {
   const [activeTab, setActiveTab] = useState<Tab>("route");
+  const [optimized, setOptimized] = useState(false);
   const [selectedVisitId, setSelectedVisitId] = useState<string>(
     visits[0]?.id ?? ""
   );
@@ -88,6 +94,18 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
     () => new Map(freezers.map((f) => [f.outletId, f])),
     [freezers]
   );
+
+  // Route optimisation: same first stop, shorter path (nearest neighbour + 2-opt)
+  const route = useMemo(() => {
+    const pts = visits.map((v) => outletMap.get(v.outletId)!).filter(Boolean);
+    const order = optimizeRoute(pts);
+    const before = routeKm(pts);
+    const after = routeKm(order.map((i) => pts[i]));
+    return { order, before, after, minutes: Math.round(((before - after) / CITY_KMH) * 60) };
+  }, [visits, outletMap]);
+  const routeVisits = optimized ? route.order.map((i) => visits[i]) : visits;
+  const bonus = bonusEstimate(fact, plan);
+  const fmtKmShort = (km: number) => `${km.toFixed(1).replace(".", ",")} км`;
 
   const selectedVisit = visits.find((v) => v.id === selectedVisitId) ?? visits[0];
   const selectedOutlet = selectedVisit ? outletMap.get(selectedVisit.outletId) : undefined;
@@ -256,12 +274,30 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
                   План маршрута на день
                 </h3>
                 <span className="text-xs text-muted">
-                  {visits.length} {visits.length === 1 ? "точка" : "точки"}
+                  {plural(visits.length, ["точка", "точки", "точек"])}
                 </span>
               </div>
 
+              {route.before - route.after > 0.05 && (
+                <div className="rounded-xl border border-frost/40 bg-frost-soft p-3 text-xs">
+                  <p className="font-semibold text-ink">
+                    {optimized ? "Маршрут оптимизирован" : "Можно короче"}: {fmtKmShort(route.before)} → {fmtKmShort(route.after)}
+                  </p>
+                  <p className="mt-0.5 text-ink-soft">
+                    Экономия {fmtKmShort(route.before - route.after)} и ≈{route.minutes} мин в день — время на ещё один визит.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOptimized((x) => !x)}
+                    className="mt-2 rounded-lg bg-frost px-3 py-1.5 font-semibold text-white"
+                  >
+                    {optimized ? "Вернуть плановый порядок" : "Оптимизировать порядок"}
+                  </button>
+                </div>
+              )}
+
               <div className="space-y-2.5">
-                {visits.map((v) => {
+                {routeVisits.map((v, idx) => {
                   const outlet = outletMap.get(v.outletId);
                   const status = statusMap[v.id] || "upcoming";
                   const isSelected = v.id === selectedVisitId;
@@ -282,7 +318,7 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-1.5 font-display text-xs font-semibold text-ink">
-                          <span className="text-frost">{v.plannedTime}</span>
+                          <span className="text-frost">{optimized ? `№${idx + 1}` : v.plannedTime}</span>
                           <span className="text-muted">·</span>
                           <span>{outlet?.name ?? v.outletId}</span>
                         </div>
@@ -292,6 +328,11 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
                       <p className="mt-1.5 text-xs text-muted line-clamp-1">
                         {outlet?.address ?? "Адрес не указан"}
                       </p>
+                      {hints[v.outletId]?.[0] && (
+                        <p className="mt-1.5 rounded-md bg-high-soft px-2 py-1 text-[11px] text-ink">
+                          💡 {hints[v.outletId][0]}
+                        </p>
+                      )}
 
                       <div className="mt-2.5 flex items-center justify-between text-[11px] text-muted border-t border-line/60 pt-2">
                         <span>Тип: {outlet?.type ?? "—"}</span>
@@ -761,6 +802,56 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
               </div>
             </div>
           )}
+          {/* TAB 4: МОЙ ПЛАН */}
+          {activeTab === "plan" && (
+            <div className="space-y-3">
+              <h3 className="font-display text-sm font-semibold text-ink">Мой план · {period.toLowerCase()}</h3>
+              <div className="rounded-xl border border-line bg-carton p-3.5">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs text-muted">Выполнение плана</span>
+                  <span className="font-display text-lg font-bold">{Math.round(bonus.fulfilment * 100)}%</span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-milk">
+                  <div
+                    className={`h-2 rounded-full ${bonus.fulfilment >= 1 ? "bg-ok" : bonus.fulfilment >= BONUS_SCHEME.minPct ? "bg-high" : "bg-critical"}`}
+                    style={{ width: `${Math.min(100, bonus.fulfilment * 100)}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-[11px] text-muted">
+                  Факт {fmtMoney(fact)} из {fmtMoney(plan)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-ok/40 bg-ok-soft p-3.5">
+                <p className="text-xs text-muted">Премия за месяц (прогноз)</p>
+                <p className="font-display text-xl font-bold text-ok">{fmtMoney(bonus.bonus)}</p>
+                <p className="mt-1 text-[11px] text-ink-soft">
+                  {bonus.nextThreshold === null
+                    ? "План перевыполнен: каждый следующий 1% даёт +2% к премии."
+                    : `До порога ${Math.round(bonus.nextThreshold * 100)}% осталось ${fmtMoney(bonus.toNext)} продаж.`}
+                </p>
+              </div>
+              <div className="rounded-xl border border-line bg-carton p-3.5 text-xs">
+                <p className="font-semibold text-ink">Подсказки по точкам сегодня</p>
+                {Object.keys(hints).length ? (
+                  <ul className="mt-1.5 space-y-1.5">
+                    {visits.filter((v) => hints[v.outletId]).map((v) => (
+                      <li key={v.id}>
+                        <span className="font-medium">{outletMap.get(v.outletId)?.name}:</span>{" "}
+                        <span className="text-ink-soft">{hints[v.outletId].join("; ")}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-muted">По точкам маршрута всё стабильно.</p>
+                )}
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted">
+                Пример схемы премии (настраивает компания): ниже {Math.round(BONUS_SCHEME.minPct * 100)}% плана — 0;
+                от {Math.round(BONUS_SCHEME.minPct * 100)}% до 100% — от 50% до 100% базовой премии {fmtMoney(BONUS_SCHEME.base)};
+                выше плана — +2% за каждый 1%, но не больше {BONUS_SCHEME.cap}× базы.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Bottom Navigation Bar */}
@@ -835,6 +926,19 @@ export function MobileApp({ rep, date, visits, outlets, freezers }: MobileAppPro
               />
             </svg>
             <span className="mt-1 text-[10px]">Заказ</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("plan")}
+            className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors ${
+              activeTab === "plan" ? "text-frost font-bold" : "text-muted hover:text-ink"
+            }`}
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 8-8M14 7h7v7" />
+            </svg>
+            <span className="mt-1 text-[10px]">Мой план</span>
           </button>
         </div>
       </div>
