@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { alerts, dataset, notifications } from "@/lib/app-data";
+import { alerts, dataset, notifications, outcomes, outcomesTotal } from "@/lib/app-data";
 import { repPlan, repSales, periodLabel, totalPlan, totalSales } from "@/lib/selectors";
-import { fmtMoney, fmtPct } from "@/lib/format";
+import { fmtMoney, fmtPct, plural } from "@/lib/format";
 import type { DeviationType } from "@/lib/types";
 import { AlertCard } from "@/components/AlertCard";
 import { PageHeader, Panel, SEVERITY_STYLE } from "@/components/ui";
@@ -78,6 +78,38 @@ export default function Dashboard() {
         </section>
 
         <aside className="space-y-6">
+          <Panel title={`Результат действий: ${periodLabel(d.previousPeriod).toLowerCase()} → ${periodLabel(p).toLowerCase()}`}>
+            <div className="border-b border-line bg-milk px-5 py-3 text-sm">
+              <p>
+                Из {plural(outcomesTotal.total, ["отклонения", "отклонений", "отклонений"])} прошлого месяца устранено{" "}
+                <span className="font-semibold text-ok">{outcomesTotal.resolved}</span>, повторяются{" "}
+                <span className="font-semibold text-critical">{outcomesTotal.persisting}</span>.
+              </p>
+              {outcomesTotal.recoveredSales > 0 && (
+                <p className="mt-0.5 text-muted">
+                  Продажи по устранённым выросли на <span className="font-semibold text-ink">{fmtMoney(outcomesTotal.recoveredSales)}</span> в месяц.
+                </p>
+              )}
+            </div>
+            <ul className="divide-y divide-line">
+              {outcomes.map((o) => (
+                <li key={o.previous.id} className="px-5 py-2.5 text-sm">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span>{o.previous.title}</span>
+                    <span className={`shrink-0 text-xs font-medium ${o.status === "resolved" ? "text-ok" : "text-critical"}`}>
+                      {o.status === "resolved" ? "устранено" : "повторяется"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted">
+                    {o.status === "resolved"
+                      ? `продажи ${o.salesDelta >= 0 ? "+" : "−"}${fmtMoney(Math.abs(o.salesDelta))} к прошлому месяцу`
+                      : "эскалировано на уровень выше"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+
           <Panel title="Ситуации из кейса">
             <ul className="divide-y divide-line">
               {CASE_SITUATIONS.map((s, i) => {

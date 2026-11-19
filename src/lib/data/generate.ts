@@ -26,6 +26,10 @@ export const SCENARIO = {
   freezerClosedOutlet: "o107", // 4b. ларь есть, продаж нет — точка закрыта (r11, slot 6)
   planRep: "r08", // 5. выполняет ~50% плана
   gpsRep: "r10", // доп.: отметки визитов далеко от точки
+  // Прошлый период (сентябрь): отклонения, которые в октябре устранены — для оценки эффекта действий.
+  prevMissedVisitsRep: "r01", // в сентябре пропустил 4 визита, в октябре маршрут восстановлен
+  prevMissedVisitSlots: [1, 3, 5, 7],
+  prevFreezerNoSalesOutlet: "o012", // в сентябре ларь стоял без продаж (сломан), в октябре починен
 } as const;
 
 function mulberry32(seed: number) {
@@ -190,6 +194,7 @@ export function generateDataset(seed: number = SEED): Dataset {
   const visits: Visit[] = [];
   for (const period of PERIODS.slice(-2)) {
     const isCurrent = period === PERIODS[PERIODS.length - 1];
+    const isPrevious = period === PERIODS[PERIODS.length - 2];
     for (const rep of reps) {
       const repOutlets = outlets.filter((o) => o.repId === rep.id);
       const repVisits: Visit[] = [];
@@ -242,6 +247,13 @@ export function generateDataset(seed: number = SEED): Dataset {
           miss(v);
         }
       }
+      if (isPrevious && rep.id === SCENARIO.prevMissedVisitsRep) {
+        // planted after the noise so that the random sequence (and every other number) stays the same
+        SCENARIO.prevMissedVisitSlots.forEach((slot, k) => {
+          const v = repVisits.find((x) => slotOf(outlets.find((o) => o.id === x.outletId)!) === slot && x.id.endsWith(`-${(k % 4) + 1}`));
+          miss(v!, "Визит перенесён: служебная машина в ремонте");
+        });
+      }
 
       if (isCurrent && rep.id === SCENARIO.gpsRep) {
         // three check-ins in week 3 made from one and the same place, kilometres away from the outlets
@@ -262,6 +274,7 @@ export function generateDataset(seed: number = SEED): Dataset {
         if (v.status !== "done") continue;
         if (v.outletId === SCENARIO.freezerClosedOutlet && isCurrent) v.note = "Точка закрыта на ремонт, заказ не оформлен.";
         if (v.outletId === SCENARIO.freezerNoSalesOutlet && isCurrent) v.note = "Заказ не оформлен: владелец закупает мороженое у конкурента.";
+        if (v.outletId === SCENARIO.prevFreezerNoSalesOutlet && isPrevious) v.note = "Ларь не работает (компрессор), заказ мороженого не оформлен.";
         if (isCurrent && rep.id === SCENARIO.salesDropRep) {
           const j = slotOf(outlets.find((o) => o.id === v.outletId)!);
           if (j === 8) v.note = "Заказ не оформлен: точка перешла к конкуренту (скидка 7%).";
@@ -284,6 +297,8 @@ export function generateDataset(seed: number = SEED): Dataset {
       if (o.id === SCENARIO.freezerNoSalesOutlet) amount *= [0.9, 0.6, 0.25, 0][pi];
       if (o.id === SCENARIO.freezerClosedOutlet) amount *= [1, 1, 0.8, 0][pi];
       if (o.id === SCENARIO.missingFreezerOutlet) amount *= [1, 1, 0.85, 0.8][pi];
+      if (pi === PERIODS.length - 2 && o.repId === SCENARIO.prevMissedVisitsRep && (SCENARIO.prevMissedVisitSlots as readonly number[]).includes(j)) amount *= 0.6;
+      if (pi === PERIODS.length - 2 && o.id === SCENARIO.prevFreezerNoSalesOutlet) amount = 0;
       amount = round(amount);
       const periodVisits = visits.filter((v) => v.period === period && v.outletId === o.id && v.status === "done").length;
       sales.push({

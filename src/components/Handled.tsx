@@ -4,6 +4,8 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { HANDLED_KEY, type SlimAlert, parseHandled, setHandled, severityCounts, splitByHandled } from "@/lib/handled";
 import { riskSummary } from "@/lib/engine/risk";
 import { fmtMoney, plural } from "@/lib/format";
+import { escalation } from "@/lib/engine/loop";
+import type { Severity } from "@/lib/types";
 
 const EMPTY: string[] = [];
 let cache: string[] | null = null;
@@ -136,5 +138,25 @@ export function FoundSummary({ alerts }: { alerts: SlimAlert[] }) {
         </span>
       )}
     </span>
+  );
+}
+
+const fmtHours = (h: number) => (h >= 48 ? `${Math.floor(h / 24)} дн. ${h % 24} ч` : `${h} ч`);
+
+/** SLA / escalation line of an alert; disappears once the alert is marked as handled. */
+export function EscalationNote({ id, severity, detectedAt, recurring }: { id: string; severity: Severity; detectedAt: string; recurring: boolean }) {
+  const e = escalation({ severity, detectedAt }, { handled: useHandled().includes(id), recurring });
+  if (e.state === "handled") return null;
+  if (e.state === "waiting")
+    return (
+      <p className="mt-2 text-xs text-muted">
+        Срок реакции: осталось {fmtHours(e.hoursLeft)}, затем эскалация — {e.target}
+      </p>
+    );
+  return (
+    <p className="mt-2 inline-flex flex-wrap gap-x-1 rounded-md bg-critical-soft px-2 py-1 text-xs text-critical">
+      <span className="font-semibold">{e.reason === "recurring" ? "Повторяется второй месяц" : `Не обработано ${fmtHours(e.hoursOpen)}`}</span>
+      <span>— эскалировано: {e.target}</span>
+    </p>
   );
 }

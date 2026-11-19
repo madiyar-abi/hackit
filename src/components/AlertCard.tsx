@@ -3,7 +3,8 @@ import type { Alert, Dataset } from "@/lib/types";
 import { getOutlet, getRep } from "@/lib/selectors";
 import { fmtMoney } from "@/lib/format";
 import { SEVERITY_STYLE, SeverityBadge, TypeTag } from "./ui";
-import { HandleButton } from "./Handled";
+import { EscalationNote, HandleButton } from "./Handled";
+import { recurring } from "@/lib/app-data";
 
 /** Full alert: what happened, possible causes with evidence, recommended actions. */
 export function AlertCard({ alert, data, compact = false }: { alert: Alert; data: Dataset; compact?: boolean }) {
@@ -32,6 +33,7 @@ export function AlertCard({ alert, data, compact = false }: { alert: Alert; data
               </>
             )}
           </p>
+          <EscalationNote id={alert.id} severity={alert.severity} detectedAt={alert.detectedAt} recurring={recurring.has(alert.id)} />
         </div>
         <div className="text-right">
           <div className="whitespace-nowrap font-display text-xl font-semibold tracking-tight">{fmtMoney(alert.impact)}</div>
