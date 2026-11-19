@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 05:00 · by: Claude (lead, night run, phase 2) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 06:57 · by: Claude (interactive session, phase 3) · branch: `night/2026-11-19`
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -24,22 +24,22 @@ per Hack.IT template, presentation, financial model (.xlsx), video of the produc
 - [ ] Sent to Telegram @hackit_administration before 20.11 17:00
 
 ## Status
-**Night run finished (phase 1 + phase 2) — every acceptance criterion in `night/SPEC.md` verified,
-`night/DONE` created.** Production https://puls-prodazh-nine.vercel.app shows the phase-2 version
-(checked 05:00: `/mobile`, `/finance` breakeven, «Отметить обработанным» survives reload).
+**Phases 1–3 done.** Night run (phases 1–2) finished with `night/DONE`; phase 3 (jury-gap fixes, see
+below) done interactively. Production https://puls-prodazh-nine.vercel.app shows the phase-3 version
+(checked 2026-11-19 06:57: dashboard «Результат действий» + escalation, `/import` example → 6 alerts,
+`/mobile` route optimisation + «Мой план», `/finance` with ramp-up). 65 tests, smoke, finance verify green.
 What's left is for humans (video, slides, template, submission) — see "Left to do".
 
 ## Done
 - Next.js 15 app (`src/app/`): обзор `/`, отклонения `/alerts` (фильтры), сотрудники `/reps`,
   карточка ТП `/reps/[id]`, карточка точки `/outlets/[id]`, уведомления `/notifications`.
 - Engine (`src/lib/engine/`): 6 detectors (5 case situations + GPS), cause rules with evidence,
-  recommended actions, notification routing/texts, thresholds in `config.ts`. 43 vitest tests.
+  recommended actions, notification routing/texts, thresholds in `config.ts`. 65 vitest tests (after phase 3).
 - Demo data (`src/lib/data/generate.ts`): 12 reps, 120 outlets, 95 freezers, 4 months, 948 visits;
   8 alerts found (3 critical / 3 high / 2 medium), 7 002 665 ₸/мес at risk.
-- Finance model (`finance/`, by codex): budget 27 170 000 ₸ / 6 months; base net effect
-  81 600 000 ₸/year, ROI 200,3%, payback 4,0 months after launch (phase 2: revenue built bottom-up
-  25 ТП × 100 точек × 200 000 ₸ × 12 = 6 млрд ₸; write-offs at cost; breakeven: 1,18% sales uplift
-  pays back within 12 months from start).
+- Finance model (`finance/`): budget 27 170 000 ₸ / 6 months; base net effect 81 600 000 ₸/year at
+  full run-rate. Current numbers (phase 3, with 6-month ramp-up) — see «Phase 3» below; older numbers
+  in the phase 1/2 notes are superseded.
 - Pages `/finance` (budget, scenarios, assumptions from `finance/summary.json`, by gemini) and
   `/settings` (live threshold playground, by codex). Finance v2: cash flow 24 months (payback month 10
   from project start, NPV 75 242 934 ₸ at 16%) and sensitivity sheet (codex).
@@ -60,6 +60,26 @@ What's left is for humans (video, slides, template, submission) — see "Left to
 - Docs: SFA-class comparison + jury answers («чем вы лучше готовых систем?», «откуда 6 млрд?»),
   DEMO steps for alert handling and `/mobile`, all numbers synced, screenshots retaken from production.
 
+## Phase 3 (done 2026-11-19, interactive) — gaps found in self-review
+- Finance ramp-up: effect grows linearly over 6 months after launch (`Допущения!B16`), OPEX from launch.
+  Base: payback 6,8 мес. after launch (13th month from start), ROI over 12 months of operation 131,3%,
+  NPV 58 327 221 ₸; pessimistic payback 11,3 мес.; breakeven (12 months after launch): 0% uplift needed
+  with freezer+write-off effects, 3,0% without them; no freezers → 15th month. Same closed-form payback
+  in Excel and Python, `verify.py` checks both and that the cash-flow month = 6 + ceil(payback).
+- Seasonality guard: «ларь без продаж» is not raised when the other freezers also sell < 50% of their
+  3-month average (`freezerSeasonalDropPct`); cause «Не сезонность: остальные лари продают — 95%».
+- `/import`: CSV upload (reps/outlets/sales/plans/visits/freezers/managers, «;» or «,», RU dates),
+  in-browser analysis, templates; independent «другой регион» example (Караганда) → 6 alerts.
+  Round-trip test: demo → CSV → import gives identical alerts.
+- Closed loop (`src/lib/engine/loop.ts`): `asOfPeriod` + detectors on September → 2 of 4 resolved
+  (+1 385 000 ₸/мес), 2 persisting; SLA escalation (24/72/120 ч, demo now 02.11 10:00), recurring →
+  escalated at once; «обработано» clears it. Demo data got 2 September deviations (r01 visits, o012 freezer);
+  RNG order kept, so October numbers are unchanged except plan 69 170 000 ₸ (89%) and −2% vs September.
+- `/mobile`: demo day = r03's weekly route (10 outlets); «Оптимизировать порядок» 21,4 → 10,6 км (≈26 мин);
+  tab «Мой план»: 91% plan, bonus forecast 115 807 ₸ (example scheme), 455 000 ₸ to 100%, outlet hints.
+- Docs/README/DEMO (steps 1, 7а, 7б)/PITCH (slides 3–5, 7 + 3 new jury answers) updated; screenshots
+  01, 06, 08 retaken from prod, 09 (`/import`) and 10 («Мой план») added.
+
 ## In progress
 - Nothing.
 
@@ -69,7 +89,9 @@ What's left is for humans (video, slides, template, submission) — see "Left to
 3. Slides from `docs/PITCH.md`; documentation into the Hack.IT template; fill team names.
 4. Open `finance/financial-model.xlsx` in Excel, check sheets, Save — the file is generated with
    formulas only (Excel recalculates on open); saving stores the values so previews show numbers.
-5. Optional: rehearse the Q&A in `docs/PITCH.md` (incl. «чем вы лучше SFA?», «откуда 6 млрд?»).
+5. Rehearse the Q&A in `docs/PITCH.md` (incl. «чем вы лучше SFA?», «откуда 6 млрд?», «вы же сами
+   заложили ситуации?», «как понять, что помогает?», «зимой лари?»). DEMO with all steps ≈ 3,5 мин —
+   drop optional steps (2-доп., 6) if the video must be ≤ 3 мин.
 6. Send everything to @hackit_administration.
 
 ## Decisions & assumptions

@@ -415,7 +415,9 @@ if (drop < c.salesDropPct) return [];   // порог 0.3 из config.ts
 | Уведомления руководству | ![Уведомления](screenshots/05-uvedomleniya.png) |
 | Финансовая модель в приложении | ![Финмодель](screenshots/06-finmodel.png) |
 | Настройка порогов | ![Пороги](screenshots/07-porogi.png) |
-| Прототип приложения ТП (`/mobile`) | ![Приложение ТП](screenshots/08-prilozhenie-tp.png) |
+| Приложение ТП: оптимизированный маршрут (`/mobile`) | ![Приложение ТП](screenshots/08-prilozhenie-tp.png) |
+| Приложение ТП: «Мой план», премия и подсказки | ![Мой план](screenshots/10-moy-plan-tp.png) |
+| Проверка на своих данных (`/import`, пример другого региона) | ![Свои данные](screenshots/09-svoi-dannye.png) |
 
 ## Заключение
 

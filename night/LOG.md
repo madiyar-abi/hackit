@@ -179,3 +179,12 @@
   summary.json ✓; risk KPI no double counting, write-offs at cost ✓; SFA comparison + 2 answers ✓;
   handled works on deploy after reload, tests green ✓; npm test + smoke green, prod shows new version ✓.
   Creating night/DONE.
+
+## 2026-11-19 06:57 claude (interactive, phase 3)
+- Owner asked to close all gaps from the self-review. Done: finance ramp-up (6 мес.), freezer seasonality
+  guard, /import (CSV + second-region example), closed loop (outcomes of last month + SLA escalation),
+  rep value on /mobile (route optimisation, bonus forecast, hints). Docs synced, screenshots retaken.
+- Verified: tsc, eslint, 65 tests, finance verify, smoke (incl. /import, /settings); vercel deploy --prod,
+  prod checked with Playwright (numbers match docs).
+- Assumptions: bonus scheme is an example (150 000 ₸ base, 80% floor); demo "now" = 02.11.2026 10:00;
+  SLA 24/72/120 h; seasonality threshold 50% vs 3-month average.
