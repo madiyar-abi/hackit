@@ -36,9 +36,6 @@ npm run dev        # http://localhost:3000
 
 ## Contributing
 
-0. **Read [`HANDOFF.md`](./HANDOFF.md) first** — what's done, what's left, how to continue.
 1. Create a branch: `git checkout -b feature/<name>`
 2. Commit small, focused changes.
 3. Open a pull request into `main`.
-
-AI agent rules for this repo: see [`CLAUDE.md`](./CLAUDE.md).

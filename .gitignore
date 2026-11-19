@@ -16,11 +16,6 @@ desktop.ini
 .env.*
 !.env.example
 
-# --- Claude Code: personal, machine-specific files ---
-.claude/settings.local.json
-.claude/worktrees/
-CLAUDE.local.md
-
 # --- Logs / temp ---
 *.log
 tmp/
@@ -36,9 +31,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-
-# --- Night-run watchdog logs (local only) ---
-.night-logs/
 
 # --- Next.js / Vercel ---
 .next/
