@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/notifications", label: "Уведомления" },
   { href: "/finance", label: "Финмодель" },
   { href: "/settings", label: "Пороги" },
+  { href: "/import", label: "Свои данные" },
   { href: "/mobile", label: "Приложение ТП" },
 ];
 
