@@ -46,7 +46,9 @@ every finished task.
 - Domain types `src/lib/types.ts`; demo data generator `src/lib/data/generate.ts` (seeded; `SCENARIO` plants the case situations).
 - Engine (pure functions + tests): `src/lib/engine/` — `config.ts` thresholds, `detect.ts`, `causes.ts`, `notify.ts`.
 - UI gets data only via `src/lib/app-data.ts`; shared UI in `src/components/` (`ui.tsx`, `AlertCard.tsx`).
-- Pages: `src/app/` (`/`, `/alerts`, `/reps`, `/reps/[id]`, `/outlets/[id]`, `/notifications`, `/finance`, `/settings`).
+- Pages: `src/app/` (`/`, `/alerts`, `/reps`, `/reps/[id]`, `/outlets/[id]`, `/notifications`, `/finance`, `/settings`, `/import`, `/mobile`).
+- Closed loop (escalation, last month's outcomes via `asOfPeriod`) in `src/lib/engine/loop.ts`; CSV import + second-region example in `src/lib/import/`; rep-facing helpers (route, bonus, hints) in `src/lib/coach.ts`.
+- Demo data: `generate.ts` consumes a seeded RNG in a fixed order — plant new scenarios *after* existing random calls, or every number in the docs shifts.
 - `finance/financial-model.xlsx` and `finance/summary.json` are generated — edit `build_model.py`, not them.
 
 ## Conventions

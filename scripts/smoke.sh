@@ -83,6 +83,7 @@ check_endpoint() {
 
 # Required endpoints per T19
 check_endpoint "/" "Ситуации из кейса"
+check_endpoint "/" "Результат действий"
 check_endpoint "/alerts" ""
 check_endpoint "/alerts?type=sales_drop" "Тимур Жумабеков"
 check_endpoint "/reps" ""
@@ -98,3 +99,5 @@ else
 fi
 
 check_endpoint "/mobile" "Прототип экрана"
+check_endpoint "/settings" ""
+check_endpoint "/import" "Проверка на своих данных"
