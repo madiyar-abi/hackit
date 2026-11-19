@@ -1,7 +1,7 @@
 """Создаёт финансовую модель Excel и сводку для веб-приложения."""
 import json
 from itertools import accumulate
-from math import ceil
+from math import ceil, sqrt
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -13,6 +13,8 @@ MONEY = '# ##0" ₸"'
 PERCENT = "0.0%"
 DECIMAL = "0.0"
 DISCOUNT_RATE_PCT = 16
+RAMP_MONTHS = 6  # линейный выход на полный эффект после запуска
+HORIZON_AFTER_LAUNCH = 12  # горизонт окупаемости для листа «Безубыточность»
 CASHFLOW_MONTHS = 24
 UPLIFT_RATES = (1, 2, 3, 4, 5)
 REACTIVATION_RATES = (30, 50, 70)
@@ -61,8 +63,8 @@ METRICS = (
     ("lossReduction", "Снижение потерь за год (по себестоимости)", MONEY),
     ("annualOpex", "Годовой OPEX поддержки", MONEY),
     ("netAnnualEffect", "Чистый годовой эффект", MONEY),
-    ("roiYear1", "ROI 1-го года", PERCENT),
-    ("paybackMonths", "Окупаемость (мес.)", DECIMAL),
+    ("roiYear1", "ROI за 12 мес. работы (с выходом на эффект)", PERCENT),
+    ("paybackMonths", "Окупаемость после запуска, мес. (с выходом на эффект)", DECIMAL),
 )
 
 
@@ -76,6 +78,41 @@ def make_sheet(book, name, headers, widths):
         cell.fill = PatternFill("solid", fgColor="173D50")
         cell.font = Font(bold=True, color="FFFFFF")
     return sheet
+
+
+RAMP = "'Допущения'!$B$16"
+INVESTMENT = "'Бюджет'!$H$13"
+
+
+def payback_formula(gross, opex):
+    """Excel: месяцев после запуска до окупаемости при линейном выходе на эффект за RAMP мес.
+
+    gross/opex — годовые суммы (выражения Excel). Накопленный эффект за m мес.:
+    m ≤ R: a·m(m+1)/(2R) − o·m;  m ≥ R: a·(m − (R−1)/2) − o·m, где a = gross/12, o = opex/12.
+    """
+    a, o = f"(({gross})/12)", f"(({opex})/12)"
+    linear = f"(({INVESTMENT})+{a}*({RAMP}-1)/2)/({a}-{o})"
+    qa = f"({a}/(2*{RAMP}))"
+    qb = f"({qa}-{o})"
+    quadratic = f"(-{qb}+SQRT({qb}^2+4*{qa}*{INVESTMENT}))/(2*{qa})"
+    return f'=IF({a}<={o},"Не окупается",IF({linear}>={RAMP},{linear},{quadratic}))'
+
+
+def payback_months(gross, opex, investment, ramp=RAMP_MONTHS):
+    """То же, что payback_formula, в Python."""
+    a, o = gross / 12, opex / 12
+    if a <= o:
+        return None
+    linear = (investment + a * (ramp - 1) / 2) / (a - o)
+    if linear >= ramp:
+        return linear
+    qa = a / (2 * ramp)
+    qb = qa - o
+    return (-qb + sqrt(qb * qb + 4 * qa * investment)) / (2 * qa)
+
+
+def ramp_share(month_after_launch, ramp=RAMP_MONTHS):
+    return min(1, month_after_launch / ramp) if month_after_launch > 0 else 0
 
 
 def add_revenue_basis_sheet(book):
@@ -119,28 +156,32 @@ def add_breakeven_sheet(book):
         book, "Безубыточность", ["Показатель (базовый сценарий)", "Значение", "Комментарий"],
         [75, 24, 57],
     )
+    basis = "('Допущения'!B2*'Допущения'!B3/100)"
     for label, formula, number_format, comment in (
         ("Инвестиции", "='Бюджет'!H13", MONEY, "Полный бюджет внедрения"),
-        ("Месяцев эффекта до конца 12-го месяца от старта", "=12-'Допущения'!B14", "0",
-         "Первые шесть месяцев занимает внедрение"),
-        ("Требуемый чистый годовой эффект для окупаемости за 12 мес.", "=B2/B3*12", MONEY,
-         "Экстраполяция необходимого месячного эффекта на год"),
+        ("Горизонт окупаемости после запуска, мес.", HORIZON_AFTER_LAUNCH, "0",
+         "Цель: вернуть инвестиции за первый год работы системы (18 мес. от старта)"),
+        ("Выход на полный эффект, мес.", "='Допущения'!B16", "0", "Эффект растёт линейно"),
+        ("Месяцев полного эффекта за горизонт (эквивалент)", "=(B4+1)/2+B3-B4", DECIMAL,
+         "Сумма долей эффекта по месяцам: 1/6, 2/6, … , 1"),
+        ("OPEX поддержки за год", "='Эффект'!C7", MONEY, "Расходы идут с первого месяца после запуска"),
+        ("Требуемый годовой валовой эффект (прибыль + экономия)", "=(B2+B6*B3/12)*12/B5", MONEY,
+         "При полном выходе на эффект"),
+        ("Требуемый чистый годовой эффект", "=B7-B6", MONEY, "За вычетом OPEX поддержки"),
         ("Валовая прибыль от ларей (базовый)", "='Эффект'!C3*'Допущения'!B3/100", MONEY,
          "Выручка от возвращённых в продажи ларей × маржа"),
         ("Снижение потерь (базовый)", "='Эффект'!C6", MONEY, "Экономия по себестоимости"),
-        ("OPEX поддержки за год", "='Эффект'!C7", MONEY, "Расходы после запуска"),
-        ("Мин. прирост продаж для окупаемости за 12 мес., %",
-         "=(B4+B7-B5-B6)/('Допущения'!B2*'Допущения'!B3/100)*100", "0.00",
-         "Эффект ларей и снижение списаний по базовому сценарию"),
+        ("Мин. прирост продаж для окупаемости за горизонт, %",
+         f"=MAX(0,(B7-B9-B10)/{basis}*100)", "0.00",
+         "Эффект ларей и снижение списаний по базовому сценарию; 0 — окупается и без прироста"),
         ("Мин. прирост продаж без эффекта ларей и списаний, %",
-         "=(B4+B7)/('Допущения'!B2*'Допущения'!B3/100)*100", "0.00",
-         "Окупаемость за счёт контроля визитов и плана"),
+         f"=B7/{basis}*100", "0.00", "Окупаемость только за счёт контроля визитов и плана"),
         ("Чистый годовой эффект без ларей (базовый)",
-         "='Эффект'!C2*'Допущения'!B3/100+B6-B7", MONEY, "Экономия на списаниях сохраняется"),
+         "='Эффект'!C2*'Допущения'!B3/100+B10-B6", MONEY, "Экономия на списаниях сохраняется"),
         ("Окупаемость без эффекта ларей, мес. после запуска",
-         '=IF(B10>0,B2/(B10/12),"Не окупается")', "0.00", "С начала получения эффекта"),
+         payback_formula("B13+B6", "B6"), "0.00", "С учётом выхода на эффект"),
         ("Месяц окупаемости от старта без ларей",
-         '=IF(B10>0,\'Допущения\'!B14+ROUNDUP(B11,0),"Не окупается")', "0",
+         '=IF(ISNUMBER(B14),\'Допущения\'!B14+ROUNDUP(B14,0),"Не окупается")', "0",
          "Порядковый месяц проекта с учётом внедрения"),
     ):
         sheet.append([label, formula, comment])
@@ -150,32 +191,38 @@ def add_breakeven_sheet(book):
 def add_cashflow_sheet(book):
     sheet = make_sheet(
         book, "Денежный поток",
-        ["Месяц", "Чистый поток", "Накопленный поток", "Дисконтированный поток", "Месяц окупаемости"],
-        [12, 23, 25, 31, 24],
+        ["Месяц", "Чистый поток", "Накопленный поток", "Дисконтированный поток", "Месяц окупаемости",
+         "Доля эффекта"],
+        [12, 23, 25, 31, 24, 14],
     )
-    sheet["G2"] = "Годовая ставка, %"
-    sheet["H2"] = "='Допущения'!B15"
-    sheet["G3"] = "Месячная ставка"
-    sheet["H3"] = "=(1+H2/100)^(1/12)-1"
-    sheet["H3"].number_format = "0.00%"
-    sheet["G4"] = "NPV за 24 месяца"
-    sheet["H4"] = f"=SUM(D2:D{CASHFLOW_MONTHS + 1})"
-    sheet["H4"].number_format = MONEY
-    sheet["G5"] = "Месяц окупаемости"
-    sheet["H5"] = f'=IF(E{CASHFLOW_MONTHS + 1}=0,"За горизонтом",E{CASHFLOW_MONTHS + 1})'
-    sheet.column_dimensions["G"].width = 27
-    sheet.column_dimensions["H"].width = 23
+    sheet["H2"] = "Годовая ставка, %"
+    sheet["I2"] = "='Допущения'!B15"
+    sheet["H3"] = "Месячная ставка"
+    sheet["I3"] = "=(1+I2/100)^(1/12)-1"
+    sheet["I3"].number_format = "0.00%"
+    sheet["H4"] = "NPV за 24 месяца"
+    sheet["I4"] = f"=SUM(D2:D{CASHFLOW_MONTHS + 1})"
+    sheet["I4"].number_format = MONEY
+    sheet["H5"] = "Месяц окупаемости"
+    sheet["I5"] = f'=IF(E{CASHFLOW_MONTHS + 1}=0,"За горизонтом",E{CASHFLOW_MONTHS + 1})'
+    sheet["H6"] = "Выход на эффект, мес."
+    sheet["I6"] = "='Допущения'!B16"
+    sheet.column_dimensions["H"].width = 27
+    sheet.column_dimensions["I"].width = 23
     for month in range(1, CASHFLOW_MONTHS + 1):
         row = month + 1
         net = (
             f"=-'Бюджет'!{get_column_letter(month + 1)}13"
-            if month <= 6 else "='Сценарии'!$C$6/12"
+            if month <= 6 else
+            f"=('Сценарии'!$C$3+'Сценарии'!$C$4)/12*F{row}-'Сценарии'!$C$5/12"
         )
+        sheet[f"F{row}"] = f"=IF(A{row}>'Допущения'!$B$14,MIN(1,(A{row}-'Допущения'!$B$14)/{RAMP}),0)"
+        sheet[f"F{row}"].number_format = "0%"
         previous_payback = f"E{row - 1}" if month > 1 else "0"
         sheet[f"A{row}"] = month
         sheet[f"B{row}"] = net
         sheet[f"C{row}"] = f"=SUM(B$2:B{row})"
-        sheet[f"D{row}"] = f"=B{row}/(1+$H$3)^A{row}"
+        sheet[f"D{row}"] = f"=B{row}/(1+$I$3)^A{row}"
         sheet[f"E{row}"] = f"=IF({previous_payback}>0,{previous_payback},IF(C{row}>=0,A{row},0))"
         sheet[f"E{row}"].number_format = '0;0;""'
         for col in "BCD":
@@ -189,7 +236,7 @@ def add_sensitivity_sheet(book):
         [48, 22, 22, 22],
     )
     sheet["F2"] = "Чистый годовой эффект, ₸ (строки 2–6)"
-    sheet["F9"] = "Окупаемость с начала эффекта, мес. (строки 9–13)"
+    sheet["F9"] = "Окупаемость после запуска с выходом на эффект, мес. (строки 9–13)"
     sheet.column_dimensions["F"].width = 57
     sheet["A8"] = "=A1"
     for col in "BCD":
@@ -209,8 +256,8 @@ def add_sensitivity_sheet(book):
                 f"{col}$1/100*{common}8*12)*{common}3/100+'Эффект'!$C$6-'Эффект'!$C$7"
             )
             sheet[f"{col}{row}"].number_format = MONEY
-            sheet[f"{col}{row + 7}"] = (
-                f'=IF({col}{row}>0,\'Бюджет\'!$H$13/({col}{row}/12),"Не окупается")'
+            sheet[f"{col}{row + 7}"] = payback_formula(
+                f"{col}{row}+'Эффект'!$C$7", "'Эффект'!$C$7",
             )
             sheet[f"{col}{row + 7}"].number_format = DECIMAL
 
@@ -235,6 +282,11 @@ def write_workbook():
         "Эффективная годовая ставка для NPV",
     ])
     inputs["B15"].font = Font(color="175DAD")
+    inputs.append([
+        "Выход на полный эффект после запуска", RAMP_MONTHS, None, None, None, "мес.",
+        "Линейно: в 1-й месяц после запуска 1/6 эффекта, с 6-го — полный. OPEX поддержки — сразу",
+    ])
+    inputs["B16"].font = Font(color="175DAD")
     inputs["B2"] = "='Обоснование выручки'!B7"
     inputs["B2"].font = Font()
     inputs["G10"].alignment = Alignment(wrap_text=True, vertical="center")
@@ -293,9 +345,11 @@ def write_workbook():
             if row < 7:
                 formula = f"='Эффект'!{col}{row + 2}"
             elif row == 7:
-                formula = f"=({col}6-'Бюджет'!H13)/'Бюджет'!H13"
+                formula = (
+                    f"=(({col}3+{col}4)/12*(({RAMP}+1)/2+12-{RAMP})-{col}5-{INVESTMENT})/{INVESTMENT}"
+                )
             else:
-                formula = f'=IF({col}6>0,\'Бюджет\'!H13/({col}6/12),"Не окупается")'
+                formula = payback_formula(f"{col}3+{col}4", f"{col}5")
             scenarios[f"{col}{row}"] = formula
             scenarios[f"{col}{row}"].number_format = number_format
 
@@ -309,8 +363,9 @@ def write_workbook():
         ("Проверка бюджета", "='Бюджет'!B17", "General"),
         ("Проверка срока", "='Бюджет'!B19", "General"),
         ("Чистый годовой эффект (базовый)", "='Сценарии'!C6", MONEY),
-        ("ROI 1-го года (базовый)", "='Сценарии'!C7", PERCENT),
-        ("Окупаемость (базовый, мес.)", "='Сценарии'!C8", DECIMAL),
+        ("ROI за 12 мес. работы (базовый)", "='Сценарии'!C7", PERCENT),
+        ("Окупаемость после запуска (базовый, мес.)", "='Сценарии'!C8", DECIMAL),
+        ("Месяц окупаемости от старта (базовый)", "='Денежный поток'!I5", "0"),
     ):
         overview.append([label, formula])
         overview[f"B{overview.max_row}"].number_format = number_format
@@ -363,6 +418,8 @@ def write_summary():
         loss_reduction = revenue * reduction_pp / 100 * (1 - margin / 100)
         opex = support * 12
         net = gross_profit + loss_reduction - opex
+        gross = gross_profit + loss_reduction
+        year1 = gross / 12 * ((RAMP_MONTHS + 1) / 2 + 12 - RAMP_MONTHS) - opex
         scenarios.append({
             "key": key,
             "name": name,
@@ -371,8 +428,8 @@ def write_summary():
             "lossReduction": round(loss_reduction),
             "annualOpex": round(opex),
             "netAnnualEffect": round(net),
-            "roiYear1": (net - investment) / investment,
-            "paybackMonths": investment / (net / 12) if net > 0 else None,
+            "roiYear1": (year1 - investment) / investment,
+            "paybackMonths": payback_months(gross, opex, investment),
         })
     base = scenarios[1]
     outlets = REPS * OUTLETS_PER_REP
@@ -391,26 +448,33 @@ def write_summary():
     gross_profit_basis = revenue_basis["annualRevenue"] * assumptions[1]["values"][1] / 100
     gross_profit_visits = gross_profit_basis * assumptions[2]["values"][1] / 100
     gross_profit_freezers = base["grossProfitEffect"] - gross_profit_visits
-    required_effect = investment / (12 - months) * 12
-    required_gross_profit = required_effect + base["annualOpex"]
+    equivalent = (RAMP_MONTHS + 1) / 2 + HORIZON_AFTER_LAUNCH - RAMP_MONTHS
+    required_gross = (investment + base["annualOpex"] * HORIZON_AFTER_LAUNCH / 12) * 12 / equivalent
     net_no_freezers = gross_profit_visits + base["lossReduction"] - base["annualOpex"]
-    payback_no_freezers = investment / (net_no_freezers / 12) if net_no_freezers > 0 else None
+    payback_no_freezers = payback_months(net_no_freezers + base["annualOpex"], base["annualOpex"], investment)
     breakeven = {
-        "requiredNetAnnualEffect12m": round(required_effect),
-        "minUpliftPct12m": (required_gross_profit - gross_profit_freezers - base["lossReduction"]) / gross_profit_basis * 100,
-        "minUpliftPctNoOtherEffects": required_gross_profit / gross_profit_basis * 100,
+        "horizonMonthsAfterLaunch": HORIZON_AFTER_LAUNCH,
+        "rampMonths": RAMP_MONTHS,
+        "requiredGrossAnnualEffect": round(required_gross),
+        "requiredNetAnnualEffect12m": round(required_gross - base["annualOpex"]),
+        "minUpliftPct12m": max(0, (required_gross - gross_profit_freezers - base["lossReduction"]) / gross_profit_basis * 100),
+        "minUpliftPctNoOtherEffects": required_gross / gross_profit_basis * 100,
         "netAnnualEffectNoFreezers": round(net_no_freezers),
         "paybackMonthsNoFreezers": payback_no_freezers,
         "paybackMonthFromStartNoFreezers": months + ceil(payback_no_freezers) if payback_no_freezers is not None else None,
     }
 
     months = list(range(1, CASHFLOW_MONTHS + 1))
-    monthly_benefit = base["netAnnualEffect"] / 12
-    net = [-amount for amount in by_month] + [monthly_benefit] * (CASHFLOW_MONTHS - len(by_month))
+    base_gross = base["grossProfitEffect"] + base["lossReduction"]
+    net = [-amount for amount in by_month] + [
+        base_gross / 12 * ramp_share(month - len(by_month)) - base["annualOpex"] / 12
+        for month in range(len(by_month) + 1, CASHFLOW_MONTHS + 1)
+    ]
     cumulative = list(accumulate(net))
     monthly_discount = (1 + DISCOUNT_RATE_PCT / 100) ** (1 / 12) - 1
     cashflow = {
         "discountRatePct": DISCOUNT_RATE_PCT,
+        "rampMonths": RAMP_MONTHS,
         "months": months,
         "net": net,
         "cumulative": cumulative,

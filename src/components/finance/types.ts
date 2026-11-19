@@ -45,6 +45,9 @@ export interface RevenueBasis {
 }
 
 export interface Breakeven {
+  horizonMonthsAfterLaunch: number;
+  rampMonths: number;
+  requiredGrossAnnualEffect: number;
   requiredNetAnnualEffect12m: number;
   minUpliftPct12m: number;
   minUpliftPctNoOtherEffects: number;
@@ -60,4 +63,5 @@ export interface FinanceSummary {
   assumptions: Assumption[];
   revenueBasis?: RevenueBasis;
   breakeven?: Breakeven;
+  cashflow: { rampMonths: number; paybackMonth: number | null; npv: number };
 }

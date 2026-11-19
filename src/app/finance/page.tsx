@@ -52,15 +52,17 @@ export default function FinancePage() {
         </div>
 
         <div className="rounded-xl border border-line bg-carton p-4">
-          <div className="text-xs text-muted">ROI 1-го года (базовый)</div>
+          <div className="text-xs text-muted">ROI за 12 мес. работы (базовый)</div>
           <div className="mt-1 text-xl font-bold tabular-nums text-frost">{fmtRoi(baseScenario.roiYear1)}</div>
-          <div className="mt-1 text-xs text-muted">С учётом возврата инвестиций</div>
+          <div className="mt-1 text-xs text-muted">С учётом выхода на эффект за {summary.cashflow.rampMonths} мес.</div>
         </div>
 
         <div className="rounded-xl border border-line bg-carton p-4">
           <div className="text-xs text-muted">Срок окупаемости (базовый)</div>
           <div className="mt-1 text-xl font-bold tabular-nums text-ok">{fmtPayback(baseScenario.paybackMonths)}</div>
-          <div className="mt-1 text-xs text-muted">С момента полного запуска</div>
+          <div className="mt-1 text-xs text-muted">
+            После запуска{summary.cashflow.paybackMonth ? `; ${summary.cashflow.paybackMonth}-й месяц от старта` : ""}
+          </div>
         </div>
       </section>
 

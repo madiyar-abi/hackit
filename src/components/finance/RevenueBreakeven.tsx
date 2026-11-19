@@ -35,11 +35,19 @@ export function RevenueBasisList({ r }: { r: RevenueBasis }) {
 export function BreakevenList({ b }: { b: Breakeven }) {
   return (
     <dl className="divide-y divide-line">
-      <Row label="Нужный чистый годовой эффект, чтобы окупиться за 12 мес. от старта" value={fmtTenge(b.requiredNetAnnualEffect12m)} />
       <Row
-        label="Минимальный прирост продаж для окупаемости за 12 мес."
-        value={pct(b.minUpliftPct12m, 2)}
-        note="эффект ларей и снижение списаний — как в базовом сценарии"
+        label={`Нужный чистый годовой эффект, чтобы окупиться за ${b.horizonMonthsAfterLaunch} мес. после запуска`}
+        value={fmtTenge(b.requiredNetAnnualEffect12m)}
+        note={`при полном эффекте; выход на него — ${b.rampMonths} мес.`}
+      />
+      <Row
+        label={`Минимальный прирост продаж для окупаемости за ${b.horizonMonthsAfterLaunch} мес. после запуска`}
+        value={b.minUpliftPct12m > 0 ? pct(b.minUpliftPct12m, 2) : "0% — не нужен"}
+        note={
+          b.minUpliftPct12m > 0
+            ? "эффект ларей и снижение списаний — как в базовом сценарии"
+            : "лари и снижение списаний (базовый сценарий) окупают проект и без прироста продаж"
+        }
       />
       <Row
         label="То же, если лари и списания не дадут ничего"

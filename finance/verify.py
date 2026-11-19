@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 import sys
-from math import isclose
+from math import ceil, isclose
 
 from openpyxl import load_workbook
 
@@ -14,6 +14,9 @@ WORKBOOK = DIRECTORY / "financial-model.xlsx"
 
 def verify():
     import formulas
+
+    sys.path.insert(0, str(DIRECTORY))
+    from build_model import payback_months
 
     summary = json.loads((DIRECTORY / "summary.json").read_text(encoding="utf-8"))
     with WORKBOOK.open("rb") as source:
@@ -60,12 +63,16 @@ def verify():
 
     cash = summary["cashflow"]
     cash_sheet = "Денежный поток"
-    compare(cash_sheet, "H2", cash["discountRatePct"], 0)
+    compare(cash_sheet, "I2", cash["discountRatePct"], 0)
     monthly_discount = (1 + cash["discountRatePct"] / 100) ** (1 / 12) - 1
-    compare(cash_sheet, "H3", monthly_discount, 1e-9)
-    compare(cash_sheet, "H4", cash["npv"])
+    compare(cash_sheet, "I3", monthly_discount, 1e-9)
+    compare(cash_sheet, "I4", cash["npv"])
+    compare(cash_sheet, "I6", cash["rampMonths"], 0)
     payback_month = cash["paybackMonth"]
-    assert cell(cash_sheet, "H5") == (payback_month if payback_month is not None else "За горизонтом")
+    assert cell(cash_sheet, "I5") == (payback_month if payback_month is not None else "За горизонтом")
+    # Денежный поток и закрытая формула окупаемости дают один и тот же месяц.
+    base_payback = summary["scenarios"][1]["paybackMonths"]
+    assert payback_month == budget["months"] + ceil(base_payback), (payback_month, base_payback)
     assert cash["months"] == list(range(1, 25))
     for month, net, cumulative in zip(cash["months"], cash["net"], cash["cumulative"], strict=True):
         compare(cash_sheet, f"A{month + 1}", month, 0)
@@ -96,7 +103,10 @@ def verify():
             uplift_revenue = revenue * uplift / 100 + idle_freezers * reactivation / 100 * annual_freezer_sales
             net = uplift_revenue * margin + base["lossReduction"] - base["annualOpex"]
             compare(sensitivity, f"{col}{row}", net)
-            compare(sensitivity, f"{col}{row + 7}", 12 * budget["total"] / net, 1e-9)
+            compare(
+                sensitivity, f"{col}{row + 7}",
+                payback_months(net + base["annualOpex"], base["annualOpex"], budget["total"]), 1e-9,
+            )
 
     revenue_basis = summary["revenueBasis"]
     for row, key in enumerate((
@@ -108,12 +118,15 @@ def verify():
     compare("Допущения", "B2", revenue_basis["annualRevenue"])
     breakeven = summary["breakeven"]
     for row, key, tolerance in (
-        (4, "requiredNetAnnualEffect12m", 1),
-        (8, "minUpliftPct12m", 1e-9),
-        (9, "minUpliftPctNoOtherEffects", 1e-9),
-        (10, "netAnnualEffectNoFreezers", 1),
-        (11, "paybackMonthsNoFreezers", 1e-9),
-        (12, "paybackMonthFromStartNoFreezers", 0),
+        (3, "horizonMonthsAfterLaunch", 0),
+        (4, "rampMonths", 0),
+        (7, "requiredGrossAnnualEffect", 1),
+        (8, "requiredNetAnnualEffect12m", 1),
+        (11, "minUpliftPct12m", 1e-9),
+        (12, "minUpliftPctNoOtherEffects", 1e-9),
+        (13, "netAnnualEffectNoFreezers", 1),
+        (14, "paybackMonthsNoFreezers", 1e-9),
+        (15, "paybackMonthFromStartNoFreezers", 0),
     ):
         expected = breakeven[key]
         if expected is None:

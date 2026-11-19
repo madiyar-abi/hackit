@@ -169,8 +169,8 @@
       "lossReduction": 9000000,
       "annualOpex": 8400000,
       "netAnnualEffect": 39300000,
-      "roiYear1": 0.44644828855355173,
-      "paybackMonths": 8.29618320610687
+      "roiYear1": 0.08069562016930439,
+      "paybackMonths": 11.330534351145038
     },
     {
       "key": "base",
@@ -180,8 +180,8 @@
       "lossReduction": 18000000,
       "annualOpex": 8400000,
       "netAnnualEffect": 81600000,
-      "roiYear1": 2.0033124769966877,
-      "paybackMonths": 3.9955882352941177
+      "roiYear1": 1.3132131026867868,
+      "paybackMonths": 6.752941176470588
     },
     {
       "key": "optimistic",
@@ -191,8 +191,8 @@
       "lossReduction": 27000000,
       "annualOpex": 8400000,
       "netAnnualEffect": 131400000,
-      "roiYear1": 3.8362164151637836,
-      "paybackMonths": 2.4812785388127856
+      "roiYear1": 2.764262053735738,
+      "paybackMonths": 5.152558308664947
     }
   ],
   "assumptions": [
@@ -316,6 +316,7 @@
   ],
   "cashflow": {
     "discountRatePct": 16,
+    "rampMonths": 6,
     "months": [
       1,
       2,
@@ -349,11 +350,11 @@
       -6765000,
       -4345000,
       -2475000,
-      6800000.0,
-      6800000.0,
-      6800000.0,
-      6800000.0,
-      6800000.0,
+      550000.0,
+      1800000.0,
+      3050000.0,
+      4300000.0,
+      5550000.0,
       6800000.0,
       6800000.0,
       6800000.0,
@@ -375,27 +376,27 @@
       -20350000,
       -24695000,
       -27170000,
-      -20370000.0,
-      -13570000.0,
-      -6770000.0,
-      30000.0,
-      6830000.0,
-      13630000.0,
-      20430000.0,
-      27230000.0,
-      34030000.0,
-      40830000.0,
-      47630000.0,
-      54430000.0,
-      61230000.0,
-      68030000.0,
-      74830000.0,
-      81630000.0,
-      88430000.0,
-      95230000.0
+      -26620000.0,
+      -24820000.0,
+      -21770000.0,
+      -17470000.0,
+      -11920000.0,
+      -5120000.0,
+      1680000.0,
+      8480000.0,
+      15280000.0,
+      22080000.0,
+      28880000.0,
+      35680000.0,
+      42480000.0,
+      49280000.0,
+      56080000.0,
+      62880000.0,
+      69680000.0,
+      76480000.0
     ],
-    "paybackMonth": 10,
-    "npv": 75242934
+    "paybackMonth": 13,
+    "npv": 58327221
   },
   "revenueBasis": {
     "reps": 25,
@@ -408,11 +409,14 @@
     "freezerOutletShare": 0.4
   },
   "breakeven": {
-    "requiredNetAnnualEffect12m": 54340000,
-    "minUpliftPct12m": 1.1826666666666665,
-    "minUpliftPctNoOtherEffects": 4.182666666666666,
+    "horizonMonthsAfterLaunch": 12,
+    "rampMonths": 6,
+    "requiredGrossAnnualEffect": 44930526,
+    "requiredNetAnnualEffect12m": 36530526,
+    "minUpliftPct12m": 0,
+    "minUpliftPctNoOtherEffects": 2.9953684210526315,
     "netAnnualEffectNoFreezers": 54600000,
-    "paybackMonthsNoFreezers": 5.9714285714285715,
-    "paybackMonthFromStartNoFreezers": 12
+    "paybackMonthsNoFreezers": 8.856043956043957,
+    "paybackMonthFromStartNoFreezers": 15
   }
 }

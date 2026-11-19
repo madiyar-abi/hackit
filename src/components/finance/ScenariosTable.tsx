@@ -13,8 +13,8 @@ const ROWS: { label: string; key: keyof Scenario; fmt: (n: number) => string }[]
   { label: "Снижение списаний (по себестоимости)", key: "lossReduction", fmt: fmtTenge },
   { label: "Годовой OPEX поддержки", key: "annualOpex", fmt: fmtTenge },
   { label: "Чистый годовой эффект", key: "netAnnualEffect", fmt: fmtTenge },
-  { label: "ROI 1-го года", key: "roiYear1", fmt: fmtRoi },
-  { label: "Окупаемость", key: "paybackMonths", fmt: fmtPayback },
+  { label: "ROI за 12 мес. работы", key: "roiYear1", fmt: fmtRoi },
+  { label: "Окупаемость после запуска", key: "paybackMonths", fmt: fmtPayback },
 ];
 
 export function ScenariosTable({ scenarios }: { scenarios: Scenario[] }) {
