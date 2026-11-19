@@ -53,3 +53,24 @@ export const avgSalesWithFreezer = (d: Dataset, type: Outlet["type"], period: st
 
 const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 export const periodLabel = (p: string) => `${MONTHS[Number(p.slice(5, 7)) - 1]} ${p.slice(0, 4)}`;
+
+/**
+ * Seasonality check for freezers: total sales of the other outlets with a working freezer in `period`
+ * relative to their average over up to 3 previous periods. ~1 = peers sell as usual (not the season);
+ * far below 1 = every freezer sells less (season or supply problem). null when there is no history.
+ */
+export const freezerPeerIndex = (
+  d: Dataset,
+  period: string,
+  excludeOutletId?: string,
+): { index: number; peers: number } | null => {
+  const ids = new Set(
+    d.freezers.filter((f) => freezerPresent(f) && f.outletId !== excludeOutletId).map((f) => f.outletId),
+  );
+  const history = d.periods.slice(0, d.periods.indexOf(period)).slice(-3);
+  if (!ids.size || !history.length) return null;
+  const byPeriod = new Map<string, number>();
+  for (const s of d.sales) if (ids.has(s.outletId)) byPeriod.set(s.period, (byPeriod.get(s.period) ?? 0) + s.amount);
+  const base = history.reduce((a, p) => a + (byPeriod.get(p) ?? 0), 0) / history.length;
+  return base > 0 ? { index: (byPeriod.get(period) ?? 0) / base, peers: ids.size } : null;
+};

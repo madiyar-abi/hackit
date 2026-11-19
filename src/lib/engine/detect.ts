@@ -4,6 +4,7 @@ import type { EngineConfig } from "./config";
 import { DEFAULT_CONFIG } from "./config";
 import {
   avgSalesWithFreezer,
+  freezerPeerIndex,
   freezerPresent,
   getOutlet,
   outletFreezer,
@@ -106,6 +107,9 @@ export function detectFreezerNoSales(d: Dataset, c: EngineConfig = DEFAULT_CONFI
     if (!freezerPresent(f)) return [];
     const sales = outletSales(d, f.outletId, p);
     if (sales > c.freezerNoSalesMax) return [];
+    // Season / supply: the other freezers sell much less too → not this outlet's problem.
+    const peers = freezerPeerIndex(d, p, f.outletId);
+    if (peers && peers.index < 1 - c.freezerSeasonalDropPct) return [];
     const o = getOutlet(d, f.outletId);
     const prev = outletSales(d, o.id, d.previousPeriod);
     // money at risk = the outlet's own average monthly sales over the 3 previous periods

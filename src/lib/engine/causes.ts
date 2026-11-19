@@ -15,6 +15,7 @@ import {
   repSales,
   repVisits,
   totalSales,
+  freezerPeerIndex,
 } from "../selectors";
 import { fmtDate, fmtKm, fmtMoney, fmtPct, plural } from "../format";
 
@@ -250,6 +251,18 @@ function explainFreezerNoSales(dev: Deviation, d: Dataset): Explanation {
       confidence: "средняя",
     });
     actions.push("Включить визит в точку в маршрут на этой неделе");
+  }
+
+  const peers = freezerPeerIndex(d, p, o.id);
+  if (peers) {
+    causes.push({
+      title: "Не сезонность: остальные лари продают",
+      evidence: [
+        `Продажи остальных ${plural(peers.peers, ["точки", "точек", "точек"])} с ларём — ${fmtPct(peers.index)} от их среднего за 3 месяца`,
+        "Проблема в этой точке, а не в сезоне или поставках по всей сети",
+      ],
+      confidence: "высокая",
+    });
   }
 
   const lastSalePeriod = [...d.periods].reverse().find((x) => outletSales(d, o.id, x) > 0);

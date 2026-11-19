@@ -90,6 +90,20 @@ describe("detectors react to data changes", () => {
     x.sales.find((s) => s.outletId === SCENARIO.freezerNoSalesOutlet && s.period === x.currentPeriod)!.amount = 50_000;
     expect(detectFreezerNoSales(x).map((a) => a.outletId)).not.toContain(SCENARIO.freezerNoSalesOutlet);
   });
+  it("seasonal slump across all freezers → no per-outlet freezer-without-sales alerts", () => {
+    const x = clone();
+    const freezerOutlets = new Set(x.freezers.map((f) => f.outletId));
+    // winter: every outlet with a freezer sells ~10% of its usual volume
+    x.sales.forEach((s) => {
+      if (s.period === x.currentPeriod && freezerOutlets.has(s.outletId)) s.amount = Math.round(s.amount * 0.1);
+    });
+    x.sales.find((s) => s.outletId === SCENARIO.freezerNoSalesOutlet && s.period === x.currentPeriod)!.amount = 0;
+    expect(detectFreezerNoSales(x)).toHaveLength(0);
+  });
+  it("freezer peers selling normally → the alert names that in a cause", () => {
+    const a = analyze(d).find((x) => x.type === "freezer_no_sales")!;
+    expect(a.causes.some((c) => c.title.includes("Не сезонность"))).toBe(true);
+  });
   it("marking missed visits as done clears the missed-visits alert", () => {
     const x = clone();
     x.visits.forEach((v) => (v.status = "done"));

@@ -20,6 +20,11 @@ export interface EngineConfig {
   newRepMonths: number;
   /** Plan is "inflated" when it exceeds last period's fact by more than this share. */
   planInflationPct: number;
+  /**
+   * Seasonality guard: if the other freezer outlets sell less than (1 − this share) of their 3-month
+   * average, a freezer without sales is the season / supply, not the outlet — no per-outlet alert.
+   */
+  freezerSeasonalDropPct: number;
 }
 
 export const DEFAULT_CONFIG: EngineConfig = {
@@ -33,4 +38,5 @@ export const DEFAULT_CONFIG: EngineConfig = {
   freezerUpliftPct: 0.25,
   newRepMonths: 3,
   planInflationPct: 0.3,
+  freezerSeasonalDropPct: 0.5,
 };
