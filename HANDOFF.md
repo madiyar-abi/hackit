@@ -4,7 +4,7 @@
 > Read this first after `git pull`. Keep it short and true.
 > Updated after every finished task (by the night agent or by you).
 
-**Last updated:** 2026-11-19 06:57 · by: Claude (interactive session, phase 3) · branch: `night/2026-11-19`
+**Last updated:** 2026-11-19 · by: Claude · branch: `main` (PR #1 merged the night branch)
 
 ## Deadline & submission
 **Final deadline: 20.11.2026, 17:00** (late submissions rejected). Case: Business —
@@ -79,6 +79,10 @@ What's left is for humans (video, slides, template, submission) — see "Left to
   tab «Мой план»: 91% plan, bonus forecast 115 807 ₸ (example scheme), 455 000 ₸ to 100%, outlet hints.
 - Docs/README/DEMO (steps 1, 7а, 7б)/PITCH (slides 3–5, 7 + 3 new jury answers) updated; screenshots
   01, 06, 08 retaken from prod, 09 (`/import`) and 10 («Мой план») added.
+
+## Repo state
+- Everything is in `main` (PR #1 merged `night/2026-11-19`). New work: branch from `main`, PR back into `main`.
+- Team package (Word docs, finance, screenshots) was built from this state; rebuild it if docs change.
 
 ## In progress
 - Nothing.
